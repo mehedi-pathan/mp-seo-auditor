@@ -7,8 +7,6 @@ create table profiles (
   plan text not null default 'free',
   scans_today integer not null default 0,
   scans_reset_at timestamptz default now(),
-  stripe_customer_id text,
-  stripe_subscription_id text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );

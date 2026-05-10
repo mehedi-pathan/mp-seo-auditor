@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
-import { isPaidPlan, sslcommerzPlans } from '@/lib/sslcommerz'
 import { getSubscriptionWindow, type BillingInterval } from '@/lib/planAccess'
+import type { Plan } from '@/types'
 
 const paymentNumber = '+8801622839616'
 const methods = ['bkash', 'nagad']
 const billingIntervals: BillingInterval[] = ['monthly', 'yearly']
 const yearlyDiscountMultiplier = 0.8
+const manualPaymentPlans: Partial<Record<Plan, { amount: number }>> = {
+  pro: { amount: 1900 },
+  business: { amount: 4900 },
+}
+
+const isPaidPlan = (planId: unknown): planId is keyof typeof manualPaymentPlans => {
+  return typeof planId === 'string' && planId in manualPaymentPlans
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -62,9 +70,14 @@ export async function POST(req: NextRequest) {
     }
 
     const subscription = getSubscriptionWindow(billingInterval)
+    const plan = manualPaymentPlans[planId]
+    if (!plan) {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    }
+
     const amount = billingInterval === 'yearly'
-      ? Math.round(sslcommerzPlans[planId].amount * 12 * yearlyDiscountMultiplier)
-      : sslcommerzPlans[planId].amount
+      ? Math.round(plan.amount * 12 * yearlyDiscountMultiplier)
+      : plan.amount
     const paymentPayload = {
       user_id: authData.user.id,
       plan: planId,

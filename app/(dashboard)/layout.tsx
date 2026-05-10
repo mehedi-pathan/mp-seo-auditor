@@ -66,8 +66,6 @@ export default function DashboardLayout({
         planExpiresAt: profile.plan_expires_at || null,
         scansToday: profile.scans_today || 0,
         scansResetAt: profile.scans_reset_at || new Date().toISOString(),
-        stripeCustomerId: profile.stripe_customer_id || null,
-        stripeSubscriptionId: profile.stripe_subscription_id || null,
         createdAt: profile.created_at || new Date().toISOString(),
         updatedAt: profile.updated_at || new Date().toISOString(),
       })
@@ -100,8 +98,6 @@ export default function DashboardLayout({
         planExpiresAt: null,
         scansToday: 0,
         scansResetAt: new Date().toISOString(),
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       })

@@ -55,7 +55,7 @@ Core capabilities include:
 - **SEO Data:** Google PageSpeed Insights API
 - **PDF:** jsPDF
 - **Charts:** Recharts
-- **Payments:** Manual bKash/Nagad flow, SSLCommerz route scaffolding, Stripe webhook route
+- **Payments:** Manual bKash/Nagad upgrade flow
 
 ## Project Structure
 
@@ -136,7 +136,7 @@ PAGESPEED_API_KEY=your_google_pagespeed_api_key
 NEXT_PUBLIC_APP_URL=
 ```
 
-Optional payment keys are listed in `.env.example` for Stripe and SSLCommerz.
+Manual payment requests are handled inside the app through bKash and Nagad transaction details.
 
 Important: never expose `SUPABASE_SERVICE_KEY` in client-side code. It must only be used in server routes, scripts, or trusted backend functions.
 
@@ -157,6 +157,14 @@ localhost
 ```bash
 pnpm build
 pnpm start
+```
+
+For Netlify, use:
+
+```text
+Build command: pnpm build
+Publish directory: .next
+Node version: 22
 ```
 
 ## Supabase Setup
@@ -288,8 +296,6 @@ Payment number:
 ```
 
 Users submit their sender number and transaction ID. Admins can review and approve the payment through the database flow provided in the SQL scripts.
-
-The app also contains SSLCommerz and Stripe route scaffolding for future payment automation.
 
 ## Semantic Search
 

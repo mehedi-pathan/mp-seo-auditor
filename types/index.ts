@@ -224,8 +224,6 @@ export interface UserProfile {
   planExpiresAt?: string | null
   scansToday: number
   scansResetAt: string
-  stripeCustomerId: string | null
-  stripeSubscriptionId: string | null
   createdAt: string
   updatedAt: string
 }
