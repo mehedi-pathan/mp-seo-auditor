@@ -4,10 +4,71 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mp-seo-auditor.netlify.app'
+const siteTitle = 'MP SEO Auditor - AI SEO Audit Tool'
+const siteDescription =
+  'Scan any website, find SEO issues, and get clear AI-powered recommendations to improve Google rankings, speed, accessibility, and technical SEO.'
+const ogImage = '/og-mp-seo-auditor.png'
+
 export const metadata: Metadata = {
-  title: 'MP SEO Auditor - AI-Powered SEO Analysis',
-  description: 'An AI-powered performance auditor that gives you actionable, human-readable insights to instantly optimize your website\'s health, speed, and visibility.',
-  generator: 'v0.app',
+  metadataBase: new URL(appUrl),
+  title: {
+    default: siteTitle,
+    template: '%s | MP SEO Auditor',
+  },
+  description: siteDescription,
+  applicationName: 'MP SEO Auditor',
+  generator: 'Next.js',
+  keywords: [
+    'SEO audit tool',
+    'AI SEO auditor',
+    'website SEO checker',
+    'Google SEO analysis',
+    'PageSpeed Insights',
+    'technical SEO',
+    'SEO report',
+    'MP SEO Auditor',
+  ],
+  authors: [{ name: 'Mehedi Pathan', url: 'https://mehedipathan.online' }],
+  creator: 'Mehedi Pathan',
+  publisher: 'MP SEO Auditor',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: '/',
+    siteName: 'MP SEO Auditor',
+    title: siteTitle,
+    description: siteDescription,
+    images: [
+      {
+        url: ogImage,
+        width: 1317,
+        height: 828,
+        alt: 'MP SEO Auditor landing page showing AI SEO audit preview',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteTitle,
+    description: siteDescription,
+    images: [ogImage],
+    creator: '@mehedipathan',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
   icons: {
     icon: [
       {
