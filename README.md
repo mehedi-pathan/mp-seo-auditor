@@ -1,5 +1,7 @@
 # MP SEO Auditor
 
+<img src="./docs/images/seo-share-preview.png" alt="MP SEO Auditor landing page social preview showing the website audit hero and mobile app screens" width="760" />
+
 MP SEO Auditor is a mobile-focused SEO audit app built to help website owners, developers, and agencies understand what is holding a site back in Google search. It scans a URL, checks technical SEO signals, pulls Google PageSpeed Insights data, generates AI-readable recommendations, and saves every audit so users can track improvement over time.
 
 The product is designed for practical SEO work: scan a website, understand the problems, compare with competitors, export a report, and turn the findings into developer-friendly fixes.
@@ -8,17 +10,17 @@ The product is designed for practical SEO work: scan a website, understand the p
 
 ### Landing Page
 
-![MP SEO Auditor landing page preview](./docs/images/landing-light.png)
+<img src="./docs/images/landing-light.png" alt="MP SEO Auditor landing page preview" width="520" />
 
 ### Mobile App Experience
 
-![MP SEO Auditor mobile app preview](./docs/images/app-light.png)
+<img src="./docs/images/app-light.png" alt="MP SEO Auditor mobile app preview" width="280" />
 
 ### Dark Mode
 
-![MP SEO Auditor dark landing preview](./docs/images/landing-dark.png)
+<img src="./docs/images/landing-dark.png" alt="MP SEO Auditor dark landing page preview" width="520" />
 
-![MP SEO Auditor dark app preview](./docs/images/app-dark.png)
+<img src="./docs/images/app-dark.png" alt="MP SEO Auditor dark mobile app preview" width="280" />
 
 ## What The App Does
 
