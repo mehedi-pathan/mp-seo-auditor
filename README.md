@@ -8,17 +8,19 @@ The product is designed for practical SEO work: scan a website, understand the p
 
 ## Preview
 
-### Landing Page
+### APP HOME PAGE
 
-<img src="./docs/images/landing-light.png" alt="MP SEO Auditor landing page preview" width="520" />
+<img src="./docs/images/landing-light.png" alt="MP SEO Auditor landing page preview" width="280" />
 
-### Mobile App Experience
+### APP SEO AUDIT PAGE
 
 <img src="./docs/images/app-light.png" alt="MP SEO Auditor mobile app preview" width="280" />
 
-### Dark Mode
+### APP HOME PAGE - Dark Mode
 
-<img src="./docs/images/landing-dark.png" alt="MP SEO Auditor dark landing page preview" width="520" />
+<img src="./docs/images/landing-dark.png" alt="MP SEO Auditor dark landing page preview" width="280" />
+
+### APP SEO AUDIT PAGE - Dark Mode
 
 <img src="./docs/images/app-dark.png" alt="MP SEO Auditor dark mobile app preview" width="280" />
 
