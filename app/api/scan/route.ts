@@ -5,6 +5,7 @@ import { getPageSpeedAnalysis } from '@/lib/pageSpeed'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import type { AuditResult, Fix } from '@/types'
 import { getEffectivePlan, getPlanEntitlements } from '@/lib/planAccess'
+import { normalizeWebsiteUrl } from '@/lib/normalizeUrl'
 
 interface ScanRequestBody {
   url?: string
@@ -121,11 +122,13 @@ export async function POST(req: NextRequest) {
 
   try {
     requestBody = (await req.json()) as ScanRequestBody
-    const { url, userId, sessionId } = requestBody
+    const { url: rawUrl, userId, sessionId } = requestBody
 
-    if (!url) {
+    if (!rawUrl) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 })
     }
+
+    const url = normalizeWebsiteUrl(rawUrl)
 
     // Validate URL
     try {

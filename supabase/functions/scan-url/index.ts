@@ -1,6 +1,7 @@
 import { corsHeaders, errorResponse, jsonResponse } from '../_shared/cors.ts'
 import { createServiceClient } from '../_shared/supabase.ts'
 import { scanWebsite } from '../_shared/scan.ts'
+import { normalizeWebsiteUrl } from '../_shared/normalize-url.ts'
 
 interface ScanPayload {
   url?: string
@@ -34,13 +35,15 @@ Deno.serve(async req => {
     const payload = (await req.json()) as ScanPayload
     if (!payload.url) return errorResponse('URL is required', 400)
 
+    const url = normalizeWebsiteUrl(payload.url)
+
     try {
-      new URL(payload.url)
+      new URL(url)
     } catch {
       return errorResponse('Invalid URL format', 400)
     }
 
-    const audit = await scanWebsite(payload.url, (progress, step, status) =>
+    const audit = await scanWebsite(url, (progress, step, status) =>
       updateProgress(payload.sessionId, progress, step, status),
     )
 
@@ -58,4 +61,3 @@ Deno.serve(async req => {
     )
   }
 })
-
