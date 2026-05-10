@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supabase } from '@/lib/supabase/client'
-import { Camera, Edit3, Loader2, Save, User, X } from 'lucide-react'
+import { AlertTriangle, Camera, Edit3, Loader2, Save, Trash2, User, X } from 'lucide-react'
 import { toast } from 'sonner'
 import type { BillingInterval, Plan } from '@/types'
 import { getPlanDisplay } from '@/lib/planDisplay'
@@ -30,6 +31,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [originalName, setOriginalName] = useState('')
@@ -44,6 +46,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -235,6 +239,45 @@ export default function ProfilePage() {
     }
   }
 
+  const deleteAccount = async () => {
+    if (deleteConfirm.trim().toUpperCase() !== 'DELETE') {
+      toast.error('Type DELETE to confirm account deletion')
+      return
+    }
+
+    setIsDeletingAccount(true)
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        toast.error('Please log in again')
+        return
+      }
+
+      const response = await fetch('/api/profile', {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
+
+      const result = (await response.json()) as { error?: string; success?: boolean }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Could not delete account')
+      }
+
+      await supabase.auth.signOut()
+      toast.success('Your account has been deleted')
+      router.replace('/')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not delete account')
+    } finally {
+      setIsDeletingAccount(false)
+    }
+  }
+
   const activePlan = getPlanDisplay(plan)
   const PlanIcon = activePlan.icon
 
@@ -375,6 +418,42 @@ export default function ProfilePage() {
             <p className="text-muted-foreground">Package started</p>
             <p className="mt-1 font-semibold">{formatDate(planStartedAt)}</p>
           </div>
+        </div>
+      </Card>
+
+      <Card className="border-red-200 bg-red-50/60 p-4 dark:border-red-500/25 dark:bg-red-500/10">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-red-950 dark:text-red-100">Delete account</p>
+            <p className="mt-1 text-sm leading-5 text-red-700 dark:text-red-200/80">
+              This permanently removes your profile, saved audits, keywords, scan sessions, avatar, and login account.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <label className="block text-xs font-semibold text-red-900 dark:text-red-100">
+            Type DELETE to confirm
+          </label>
+          <Input
+            value={deleteConfirm}
+            onChange={event => setDeleteConfirm(event.target.value)}
+            placeholder="DELETE"
+            className="border-red-200 bg-background dark:border-red-500/30"
+            disabled={isDeletingAccount}
+          />
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={deleteAccount}
+            disabled={isDeletingAccount || deleteConfirm.trim().toUpperCase() !== 'DELETE'}
+          >
+            {isDeletingAccount ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            Delete my account
+          </Button>
         </div>
       </Card>
     </div>

@@ -175,19 +175,19 @@ export default function DashboardLayout({
   return (
     <MobileShell>
       <TopBar userName={user?.name} plan={effectivePlan} onMenuOpen={() => setSidebarOpen(true)} />
-      <div className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto pb-28">
         {children}
-      </div>
-      <div className="px-4 pb-28 pt-2 text-center text-[11px] text-muted-foreground">
-        Designed & Developed by{' '}
-        <a
-          href="https://mehedipathan.online"
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium text-primary hover:underline"
-        >
-          Mehedi Pathan
-        </a>
+        <div className="px-4 pb-6 pt-2 text-center text-[11px] text-muted-foreground">
+          Designed & Developed by{' '}
+          <a
+            href="https://mehedipathan.online"
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            Mehedi Pathan
+          </a>
+        </div>
       </div>
       <BottomNav avatarUrl={user?.avatarUrl} />
       <AppSidebar
