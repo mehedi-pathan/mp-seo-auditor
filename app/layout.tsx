@@ -2,16 +2,16 @@ import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { publicAppUrl } from '@/lib/siteUrl'
 import './globals.css'
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mp-seo-auditor.netlify.app'
 const siteTitle = 'MP SEO Auditor - AI SEO Audit Tool'
 const siteDescription =
   'Scan any website, find SEO issues, and get clear AI-powered recommendations to improve Google rankings, speed, accessibility, and technical SEO.'
 const ogImage = '/og-mp-seo-auditor.png'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(appUrl),
+  metadataBase: new URL(publicAppUrl),
   title: {
     default: siteTitle,
     template: '%s | MP SEO Auditor',

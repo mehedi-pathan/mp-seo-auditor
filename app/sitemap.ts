@@ -1,23 +1,22 @@
 import type { MetadataRoute } from 'next'
-
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mp-seo-auditor.netlify.app'
+import { publicAppUrl } from '@/lib/siteUrl'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: appUrl,
+      url: publicAppUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
-      url: `${appUrl}/login`,
+      url: `${publicAppUrl}/login`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.3,
     },
     {
-      url: `${appUrl}/register`,
+      url: `${publicAppUrl}/register`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.4,

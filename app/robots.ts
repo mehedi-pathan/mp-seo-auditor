@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
-
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://mp-seo-auditor.netlify.app'
+import { publicAppUrl } from '@/lib/siteUrl'
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -9,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/dashboard', '/scan', '/history', '/profile', '/upgrade'],
     },
-    sitemap: `${appUrl}/sitemap.xml`,
+    sitemap: `${publicAppUrl}/sitemap.xml`,
   }
 }

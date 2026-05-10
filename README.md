@@ -137,7 +137,7 @@ SUPABASE_SERVICE_KEY=your_supabase_service_role_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
 PAGESPEED_API_KEY=your_google_pagespeed_api_key
 
-NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_APP_URL=https://mp-seo-auditor.netlify.app
 ```
 
 Manual payment requests are handled inside the app through bKash and Nagad transaction details.

@@ -197,9 +197,9 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
                     whileTap={{ scale: 0.96 }}
                     transition={{ type: 'spring', stiffness: 520, damping: 30 }}
                   >
-                    <span className="relative flex h-10 w-[74px] items-center rounded-full border border-blue-200 bg-blue-100 p-1 shadow-inner dark:border-blue-400/20 dark:bg-[#18233a]">
+                    <span className="relative flex h-10 w-[74px] items-center rounded-full border border-blue-200 bg-blue-100 p-1 shadow-inner dark:border-blue-400/30 dark:bg-[#1d3151]">
                       <motion.span
-                        className={`flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300 dark:bg-blue-500/20 ${
+                        className={`flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300 dark:bg-blue-100 ${
                           isDarkTheme ? 'translate-x-[34px]' : 'translate-x-0'
                         }`}
                         animate={{ rotate: isDarkTheme ? 12 : 0 }}
@@ -208,7 +208,7 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
                         <img
                           src="/sidebar-theme-toggle-icon.svg"
                           alt="Theme toggle icon"
-                          className="h-5 w-5 object-contain"
+                          className="h-5 w-5 object-contain dark:brightness-0 dark:saturate-100 dark:[filter:invert(24%)_sepia(91%)_saturate(2250%)_hue-rotate(212deg)_brightness(88%)_contrast(94%)]"
                         />
                       </motion.span>
                     </span>
@@ -232,14 +232,14 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
                     transition={{ type: 'spring', stiffness: 520, damping: 30 }}
                   >
                     <motion.span
-                      className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 shadow-sm shadow-red-100/70 dark:bg-red-500/15 dark:shadow-black/20"
+                      className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 shadow-sm shadow-red-100/70 dark:bg-red-100 dark:shadow-black/20"
                       whileHover={{ y: -1 }}
                       whileTap={{ rotate: -8 }}
                     >
                       <img
                         src="/sidebar-sign-out-icon.svg"
                         alt="Sign out icon"
-                        className="h-5 w-5 object-contain"
+                        className="h-5 w-5 object-contain dark:brightness-0 dark:saturate-100 dark:[filter:invert(18%)_sepia(91%)_saturate(2686%)_hue-rotate(349deg)_brightness(90%)_contrast(95%)]"
                       />
                     </motion.span>
                     <span>
