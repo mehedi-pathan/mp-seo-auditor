@@ -192,10 +192,10 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
 
             <div className="space-y-3 border-t border-border bg-background p-3.5">
               <div className="overflow-hidden rounded-3xl border border-blue-200 bg-blue-50/75 shadow-sm dark:border-blue-400/20 dark:bg-blue-500/10">
-                <div className="grid grid-cols-[1fr_1px_1fr] items-stretch">
+                <div className="flex items-stretch">
                   <button
                     type="button"
-                    className="group flex min-h-[128px] flex-col items-center justify-center gap-3 px-3 py-4 text-center transition-colors hover:bg-blue-100/60 dark:hover:bg-blue-500/15"
+                    className="group flex min-h-[128px] min-w-0 flex-1 flex-col items-center justify-center gap-3 px-3 py-4 text-center transition-colors hover:bg-blue-100/60 dark:hover:bg-blue-500/15"
                     onClick={() => setTheme(isDarkTheme ? 'light' : 'dark')}
                   >
                     <span className="relative flex h-14 w-24 items-center rounded-full border border-blue-200 bg-blue-100 p-1 shadow-inner dark:border-blue-400/20 dark:bg-[#18233a]">
@@ -217,11 +217,11 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
                     </span>
                   </button>
 
-                  <div className="my-5 w-px bg-blue-200 dark:bg-white/10" />
+                  <div className="my-5 w-px shrink-0 bg-blue-200 dark:bg-white/10" />
 
                   <button
                     type="button"
-                    className="group flex min-h-[128px] flex-col items-center justify-center gap-3 px-3 py-4 text-center transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                    className="group flex min-h-[128px] min-w-0 flex-1 flex-col items-center justify-center gap-3 px-3 py-4 text-center transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
                     onClick={onLogout}
                   >
                     <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-red-700 shadow-md shadow-red-100/80 transition-transform group-hover:scale-105 dark:bg-red-500/15 dark:text-red-300 dark:shadow-black/20">
