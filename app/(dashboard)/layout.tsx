@@ -4,11 +4,12 @@ import { MobileShell } from '@/components/layout/MobileShell'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
 import { AppSidebar } from '@/components/layout/AppSidebar'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type TouchEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import type { Plan, UserProfile } from '@/types'
 import { getEffectivePlan } from '@/lib/planAccess'
+import { RefreshCw } from 'lucide-react'
 
 const dashboardRoutes = [
   '/dashboard',
@@ -31,6 +32,15 @@ export default function DashboardLayout({
   const [scansUsed, setScansUsed] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [pullDistance, setPullDistance] = useState(0)
+  const [isPullRefreshing, setIsPullRefreshing] = useState(false)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const touchStartRef = useRef<{
+    x: number
+    y: number
+    edgeBack: boolean
+    canPullRefresh: boolean
+  } | null>(null)
   const router = useRouter()
 
   const getLimit = (plan?: string | null) => {
@@ -159,6 +169,61 @@ export default function DashboardLayout({
     router.push('/login')
   }
 
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (sidebarOpen || isPullRefreshing) return
+
+    const touch = event.touches[0]
+    const scrollTop = scrollRef.current?.scrollTop ?? 0
+
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      edgeBack: touch.clientX <= 24,
+      canPullRefresh: scrollTop <= 0,
+    }
+  }
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current
+    if (!start || !start.canPullRefresh || isPullRefreshing) return
+
+    const touch = event.touches[0]
+    const deltaX = touch.clientX - start.x
+    const deltaY = touch.clientY - start.y
+    const scrollTop = scrollRef.current?.scrollTop ?? 0
+    const isVerticalPull = deltaY > 12 && Math.abs(deltaY) > Math.abs(deltaX) * 1.2
+
+    if (scrollTop <= 0 && isVerticalPull) {
+      setPullDistance(Math.min(96, deltaY * 0.55))
+    }
+  }
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current
+    if (!start) return
+
+    const touch = event.changedTouches[0]
+    const deltaX = touch.clientX - start.x
+    const deltaY = touch.clientY - start.y
+    const isBackSwipe = start.edgeBack && deltaX > 86 && Math.abs(deltaY) < 72
+
+    touchStartRef.current = null
+
+    if (isBackSwipe) {
+      setPullDistance(0)
+      router.back()
+      return
+    }
+
+    if (pullDistance >= 72) {
+      setIsPullRefreshing(true)
+      window.location.reload()
+      return
+    }
+
+    setPullDistance(0)
+  }
+
   const effectivePlan = user ? getEffectivePlan(user.plan, user.planExpiresAt) : 'free'
 
   if (isLoading) {
@@ -175,7 +240,26 @@ export default function DashboardLayout({
   return (
     <MobileShell>
       <TopBar userName={user?.name} plan={effectivePlan} onMenuOpen={() => setSidebarOpen(true)} />
-      <div className="min-h-0 flex-1 overflow-y-auto pb-28">
+      {(pullDistance > 0 || isPullRefreshing) && (
+        <div
+          className="pointer-events-none absolute left-1/2 top-[72px] z-30 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-background/95 px-3 py-2 text-xs font-semibold text-muted-foreground shadow-lg backdrop-blur transition-all"
+          style={{ transform: `translate(-50%, ${Math.min(pullDistance, 58)}px)` }}
+        >
+          <RefreshCw className={`h-3.5 w-3.5 text-primary ${isPullRefreshing ? 'animate-spin' : ''}`} />
+          {isPullRefreshing ? 'Refreshing...' : pullDistance >= 72 ? 'Release to refresh' : 'Pull to refresh'}
+        </div>
+      )}
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-28"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={() => {
+          touchStartRef.current = null
+          setPullDistance(0)
+        }}
+      >
         {children}
         <div className="px-4 pb-6 pt-2 text-center text-[11px] text-muted-foreground">
           Designed & Developed by{' '}

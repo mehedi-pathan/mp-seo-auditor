@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import {
   BarChart3,
-  ChevronRight,
   Crown,
   ExternalLink,
   KeyRound,
@@ -41,12 +40,13 @@ const whatsappUrl = 'https://wa.me/8801622839616?text=Hi%20MP%20SEO%20team%2C%20
 const emailUrl = 'mailto:mehedipathantext@gmail.com?subject=Website%20improvement%20request&body=Hi%20MP%20SEO%20team%2C%0A%0AI%20need%20help%20improving%20my%20website%20SEO%2C%20speed%2C%20and%20performance.%0A%0AWebsite%20URL%3A%20'
 
 export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogout }: AppSidebarProps) {
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const fullName = user?.name?.trim() || 'User'
   const creditLabel = scansLimit === null ? 'Unlimited audits' : `${Math.max(scansLimit - scansUsed, 0)} of ${scansLimit} audits left`
   const usagePercent = scansLimit === null ? 100 : Math.min(100, (scansUsed / scansLimit) * 100)
   const isPaidPlan = user?.plan === 'pro' || user?.plan === 'business' || user?.plan === 'agency'
   const visibleMenuItems = isPaidPlan ? menuItems.filter(item => item.href !== '/upgrade') : menuItems
+  const isDarkTheme = resolvedTheme === 'dark'
 
   return (
     <AnimatePresence>
@@ -191,39 +191,51 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
             </div>
 
             <div className="space-y-3 border-t border-border bg-background p-3.5">
-              <button
-                type="button"
-                className="group flex w-full items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-3 text-left shadow-sm transition-colors hover:bg-blue-100/70 dark:border-blue-400/20 dark:bg-blue-500/10 dark:hover:bg-blue-500/15"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm dark:bg-blue-500/15 dark:text-blue-300">
-                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-slate-950 dark:text-white">
-                    {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-                  </span>
-                  <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
-                    {theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-                  </span>
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
-              </button>
+              <div className="overflow-hidden rounded-3xl border border-blue-200 bg-blue-50/75 shadow-sm dark:border-blue-400/20 dark:bg-blue-500/10">
+                <div className="grid grid-cols-[1fr_1px_1fr] items-stretch">
+                  <button
+                    type="button"
+                    className="group flex min-h-[128px] flex-col items-center justify-center gap-3 px-3 py-4 text-center transition-colors hover:bg-blue-100/60 dark:hover:bg-blue-500/15"
+                    onClick={() => setTheme(isDarkTheme ? 'light' : 'dark')}
+                  >
+                    <span className="relative flex h-14 w-24 items-center rounded-full border border-blue-200 bg-blue-100 p-1 shadow-inner dark:border-blue-400/20 dark:bg-[#18233a]">
+                      <span
+                        className={`flex h-12 w-12 items-center justify-center rounded-full bg-white text-blue-700 shadow-md transition-transform duration-300 dark:bg-blue-500/20 dark:text-blue-200 ${
+                          isDarkTheme ? 'translate-x-10' : 'translate-x-0'
+                        }`}
+                      >
+                        {isDarkTheme ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                      </span>
+                    </span>
+                    <span>
+                      <span className="block text-sm font-bold text-slate-950 dark:text-white">
+                        {isDarkTheme ? 'Light mode' : 'Dark mode'}
+                      </span>
+                      <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                        Current theme: {isDarkTheme ? 'Dark' : 'Light'}
+                      </span>
+                    </span>
+                  </button>
 
-              <button
-                type="button"
-                className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-colors hover:bg-red-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-red-500/10"
-                onClick={onLogout}
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 shadow-sm dark:bg-red-500/15 dark:text-red-300">
-                  <LogOut className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-slate-950 dark:text-white">Sign out</span>
-                  <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">Log out from your account</span>
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
-              </button>
+                  <div className="my-5 w-px bg-blue-200 dark:bg-white/10" />
+
+                  <button
+                    type="button"
+                    className="group flex min-h-[128px] flex-col items-center justify-center gap-3 px-3 py-4 text-center transition-colors hover:bg-red-50 dark:hover:bg-red-500/10"
+                    onClick={onLogout}
+                  >
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100 text-red-700 shadow-md shadow-red-100/80 transition-transform group-hover:scale-105 dark:bg-red-500/15 dark:text-red-300 dark:shadow-black/20">
+                      <LogOut className="h-6 w-6" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-bold text-red-900 dark:text-red-100">Sign out</span>
+                      <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                        Logout from this account
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              </div>
 
               <div className="px-2 pb-1 pt-3 text-center">
                 <div className="mb-2 h-px bg-border" />
