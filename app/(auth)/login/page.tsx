@@ -150,14 +150,14 @@ export default function LoginPage() {
             href="/"
             className="mb-2 inline-flex items-center gap-2 rounded-xl px-1 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
-            <img src="/home.svg" alt="" className="h-3.5 w-3.5 opacity-75 dark:invert" />
+            <img src="/home.svg" alt="Home page icon" className="h-3.5 w-3.5 opacity-75 dark:invert" />
             Back to Home
           </Link>
 
           <div className="mb-2 flex justify-center">
             <img
               src="/mp-seo-logo.jpeg"
-              alt="MP SEO Auditor"
+              alt="MP SEO Auditor logo"
               className="h-[52px] w-[52px] rounded-2xl object-cover ring-1 ring-border"
             />
           </div>

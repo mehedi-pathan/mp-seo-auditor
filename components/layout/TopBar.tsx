@@ -24,7 +24,7 @@ export function TopBar({ plan = 'free', onMenuOpen }: TopBarProps) {
         <div className="flex min-w-0 items-center gap-2">
           <img
             src="/mp-seo-logo.jpeg"
-            alt="MP SEO Auditor"
+            alt="MP SEO Auditor logo"
             className="h-10 w-10 rounded-xl object-cover ring-1 ring-border"
           />
           <div className="min-w-0">
@@ -69,8 +69,7 @@ export function TopBar({ plan = 'free', onMenuOpen }: TopBarProps) {
           >
             <img
               src="/menu-button-icon.svg"
-              alt=""
-              aria-hidden="true"
+              alt="Open sidebar menu icon"
               className="h-5 w-5 object-contain dark:invert"
             />
           </motion.button>

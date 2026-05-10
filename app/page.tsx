@@ -158,12 +158,12 @@ function HeroAppPreview() {
         <div className="overflow-hidden rounded-[28px] bg-slate-100">
           <img
             src="/mp-seo-audit-image2.png"
-            alt="MP SEO Auditor mobile scan screen"
+            alt="MP SEO Auditor light mode mobile audit screen"
             className="h-[430px] w-full object-cover object-top dark:hidden sm:h-[480px] lg:h-[530px]"
           />
           <img
             src="/mp-seo-audit-image2-dark.png"
-            alt="MP SEO Auditor dark mobile scan screen"
+            alt="MP SEO Auditor dark mode mobile audit screen"
             className="hidden h-[430px] w-full object-cover object-top dark:block sm:h-[480px] lg:h-[530px]"
           />
         </div>
@@ -177,12 +177,12 @@ function HeroAppPreview() {
         <div className="overflow-hidden rounded-[30px] bg-slate-100">
           <img
             src="/mp-seo-audit-image1.png"
-            alt="MP SEO Auditor dashboard scan preview"
+            alt="MP SEO Auditor light mode dashboard scan preview"
             className="h-[500px] w-full object-cover object-top dark:hidden sm:h-[545px] lg:h-[610px]"
           />
           <img
             src="/mp-seo-audit-image1-dark.png"
-            alt="MP SEO Auditor dark dashboard scan preview"
+            alt="MP SEO Auditor dark mode dashboard scan preview"
             className="hidden h-[500px] w-full object-cover object-top dark:block sm:h-[545px] lg:h-[610px]"
           />
         </div>
@@ -236,7 +236,7 @@ export default function Home() {
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <img
               src="/mp-seo-logo.jpeg"
-              alt="MP SEO Auditor"
+              alt="MP SEO Auditor logo"
               className="h-10 w-10 rounded-2xl object-cover ring-1 ring-border"
             />
             <div className="min-w-0">

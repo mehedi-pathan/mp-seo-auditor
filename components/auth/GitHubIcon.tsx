@@ -1,5 +1,5 @@
 export function GitHubIcon() {
   return (
-    <img src="/github-icon.svg" alt="" className="h-5 w-5" aria-hidden="true" />
+    <img src="/github-icon.svg" alt="GitHub logo" className="h-5 w-5" />
   )
 }

@@ -43,8 +43,7 @@ export function BottomNav({ avatarUrl }: BottomNavProps) {
                 <span className="relative -mt-8 flex h-16 w-16 items-center justify-center rounded-full border border-primary/40 bg-primary text-primary-foreground shadow-lg ring-4 ring-background">
                   <img
                     src={item.iconSrc}
-                    alt=""
-                    aria-hidden="true"
+                    alt={`${item.label} navigation icon`}
                     className="relative z-10 h-8 w-8 object-contain invert"
                   />
                   <motion.span
@@ -64,7 +63,7 @@ export function BottomNav({ avatarUrl }: BottomNavProps) {
                   {item.id === 'profile' && avatarUrl ? (
                     <img
                       src={avatarUrl}
-                      alt="Profile image"
+                      alt="User profile avatar"
                       className={`h-8 w-8 rounded-full object-cover ${
                         isActive ? 'ring-2 ring-primary/50' : 'ring-1 ring-border'
                       }`}
@@ -72,8 +71,7 @@ export function BottomNav({ avatarUrl }: BottomNavProps) {
                   ) : (
                     <img
                       src={item.iconSrc}
-                      alt=""
-                      aria-hidden="true"
+                      alt={`${item.label} navigation icon`}
                       className={`h-6 w-6 object-contain transition-all dark:invert ${
                         isActive ? 'opacity-100' : 'opacity-55'
                       }`}
