@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScanInput } from '@/components/scan/ScanInput'
 import { ScanProgress } from '@/components/scan/ScanProgress'
 import { ScoreRing } from '@/components/ui/ScoreRing'
@@ -24,6 +24,7 @@ import { useScanProgress } from '@/hooks/useScanProgress'
 import { generatePDF } from '@/lib/pdfExport'
 import { getEffectivePlan, getPlanEntitlements } from '@/lib/planAccess'
 import { getPlanDisplay } from '@/lib/planDisplay'
+import { normalizeWebsiteUrl } from '@/lib/normalizeUrl'
 
 const tabs = ['Overview', 'Headings', 'Meta', 'Content', 'Technical', 'Social', 'Links', 'Compare']
 
@@ -55,6 +56,7 @@ export default function ScanPage() {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [userPlan, setUserPlan] = useState<Plan>('free')
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
+  const autoStartedUrlRef = useRef('')
   const liveProgress = useScanProgress(step === 'scanning' ? scanSessionId : null)
   const effectivePlan = getEffectivePlan(userPlan, planExpiresAt)
   const entitlements = getPlanEntitlements(effectivePlan)
@@ -140,6 +142,16 @@ export default function ScanPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!initialUrl || loading || step !== 'input') return
+
+    const normalizedUrl = normalizeWebsiteUrl(initialUrl)
+    if (!normalizedUrl || autoStartedUrlRef.current === normalizedUrl) return
+
+    autoStartedUrlRef.current = normalizedUrl
+    void handleScan(normalizedUrl)
+  }, [initialUrl, loading, step])
 
   const openStoredOrGeneratedPdf = async () => {
     if (!audit) return
