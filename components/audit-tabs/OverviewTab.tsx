@@ -159,7 +159,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
   ]
 
   const scoreBar = (label: string, value: number, color: string) => (
-    <div className="grid gap-2 sm:grid-cols-[150px_1fr_44px] sm:items-center">
+    <div className="grid gap-2 xl:grid-cols-[150px_1fr_44px] xl:items-center">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
       <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800">
         <div className="h-full rounded-full" style={{ width: `${Math.min(value, 100)}%`, backgroundColor: color }} />
@@ -190,7 +190,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
             description="Understanding the business context helps developers and content teams prioritize work that improves search visibility and user trust."
             icon={<Info className="h-4 w-4" />}
           >
-            <div className="grid gap-3 text-xs sm:grid-cols-3">
+            <div className="grid gap-3 text-xs xl:grid-cols-3">
               <InfoBlock label="What this domain is about" value={`${audit.domain} is being evaluated for SEO, speed, crawl signals, content quality, and conversion readiness.`} />
               <InfoBlock label="Industry signal" value={audit.content.topKeywords[0]?.keyword || 'Website SEO visibility'} />
               <InfoBlock label="Target audience" value="Search visitors, potential customers, and technical teams improving the site." />
@@ -202,7 +202,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
             description="This section separates what already supports ranking from the items most likely to hold the page back."
             icon={<BarChart3 className="h-4 w-4" />}
           >
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 xl:grid-cols-2">
               <SignalList title="Content strengths" items={contentStrengths} tone="good" />
               <SignalList title="Content weaknesses" items={contentWeaknesses} tone="warning" />
             </div>
@@ -213,7 +213,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
             description="Trust combines topical relevance, metadata quality, accessibility, social previews, and technical clarity."
             icon={<ShieldCheck className="h-4 w-4" />}
           >
-            <div className="grid gap-4 lg:grid-cols-[120px_1fr] lg:items-center">
+            <div className="grid gap-4 xl:grid-cols-[120px_1fr] xl:items-center">
               <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-[10px] border-emerald-500 bg-emerald-50 text-xl font-black text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
                 {trustScore}%
               </div>
@@ -230,7 +230,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
             description="Fresh, useful content gives search engines more confidence that the page can satisfy current visitor intent."
             icon={<CircleCheck className="h-4 w-4" />}
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
               <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[8px] border-blue-500 bg-blue-50 text-lg font-black text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">
                 {freshnessScore}%
               </div>
@@ -312,13 +312,13 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
           </div>
           <div className="space-y-2">
             {audit.topFixes.map((fix, i) => (
-              <div key={i} className="grid gap-3 rounded-xl border border-border p-3 md:grid-cols-[minmax(150px,220px)_1fr]">
-                <div className="flex flex-wrap items-start justify-between gap-2">
+              <div key={i} className="grid gap-3 rounded-xl border border-border p-3 xl:grid-cols-[minmax(180px,260px)_1fr]">
+                <div className="min-w-0 space-y-2">
                   <div className="flex min-w-0 items-start gap-2">
                     <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
                     <h4 className="min-w-0 flex-1 break-words text-sm font-bold">{fix.title}</h4>
                   </div>
-                  <Badge className={`${getImpactColor(fix.impact)} shrink-0`}>{fix.impact}</Badge>
+                  <Badge className={`${getImpactColor(fix.impact)} w-fit shrink-0`}>{fix.impact}</Badge>
                 </div>
                 <p className="break-words text-sm leading-6 text-muted-foreground">{fix.description}</p>
               </div>
@@ -406,7 +406,7 @@ function AuditCheckPanel({ title, icon, score, checks }: { title: string; icon: 
       </div>
       <div className="divide-y divide-border">
         {checks.map(check => (
-          <div key={check.title} className="grid gap-3 p-4 md:grid-cols-[minmax(180px,260px)_1fr]">
+          <div key={check.title} className="grid gap-3 p-4 xl:grid-cols-[minmax(190px,280px)_1fr]">
             <div className="flex min-w-0 items-start gap-3">
               <StatusDot status={check.status} />
               <div className="min-w-0">
@@ -432,7 +432,7 @@ function StatusDot({ status }: { status: 'pass' | 'warning' | 'fail' }) {
 
 function InsightRow({ title, description, icon, children }: { title: string; description: string; icon: ReactNode; children: ReactNode }) {
   return (
-    <div className="grid gap-4 px-4 py-5 lg:grid-cols-[240px_1fr]">
+    <div className="grid gap-4 px-4 py-5 xl:grid-cols-[240px_1fr]">
       <div className="flex gap-3">
         <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-muted-foreground">
           {icon}

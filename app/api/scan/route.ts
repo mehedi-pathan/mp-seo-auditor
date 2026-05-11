@@ -59,18 +59,24 @@ const updateScanSession = async (
     updated_at: new Date().toISOString(),
   }
 
-  const { error } = await supabaseAdmin
-    .from('scan_sessions')
-    .upsert(
-      {
-        id: sessionId,
-        ...payload,
-      },
-      { onConflict: 'id' },
-    )
+  const scanSessions = supabaseAdmin.from('scan_sessions')
+  const { error } = values.url
+    ? await scanSessions.upsert(
+        {
+          id: sessionId,
+          ...payload,
+        },
+        { onConflict: 'id' },
+      )
+    : await scanSessions
+        .update(payload)
+        .eq('id', sessionId)
 
   if (error) {
-    console.error('[scan] Session update error:', error)
+    console.warn('[scan] Session update skipped:', {
+      code: error.code,
+      message: error.message,
+    })
   }
 }
 

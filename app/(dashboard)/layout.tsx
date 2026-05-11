@@ -351,13 +351,9 @@ function DesktopRightSidebar({
 function DesktopTopNavbar({
   user,
   plan,
-  scanStatus,
-  scanProgress,
 }: {
   user: UserProfile | null
   plan: Plan
-  scanStatus: ClientScanJobSnapshot | null
-  scanProgress: number
 }) {
   const pathname = usePathname()
   const activePlan = getPlanDisplay(plan)
@@ -380,7 +376,6 @@ function DesktopTopNavbar({
         </div>
 
         <div className="flex shrink-0 items-center gap-3 self-center">
-          <GlobalScanStatus scan={scanStatus} progress={scanProgress} />
           <Link
             href="/upgrade"
             prefetch
@@ -663,7 +658,7 @@ export default function DashboardLayout({
           if (!desktopSidebarCollapsed) setDesktopSidebarCollapsed(true)
         }}
       >
-        <DesktopTopNavbar user={user} plan={effectivePlan} scanStatus={scanStatus} scanProgress={globalScanProgress} />
+        <DesktopTopNavbar user={user} plan={effectivePlan} />
       </div>
       {(pullDistance > 0 || isPullRefreshing) && (
         <div

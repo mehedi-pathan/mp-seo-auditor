@@ -147,11 +147,25 @@
 }
 
 [data-sonner-toaster] {
+  position: fixed !important;
   left: 50% !important;
   right: auto !important;
-  top: max(14px, calc((100dvh - 860px) / 2 + 14px)) !important;
+  top: 16px !important;
+  bottom: auto !important;
   width: min(calc(100vw - 32px), 398px) !important;
   transform: translateX(-50%) !important;
+  z-index: 2147483647 !important;
+}
+
+[data-sonner-toaster][data-x-position='center'] {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+}
+
+[data-sonner-toaster][data-y-position='top'] {
+  top: 16px !important;
+  bottom: auto !important;
 }
 
 [data-sonner-toast] {

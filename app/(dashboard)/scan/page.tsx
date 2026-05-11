@@ -497,7 +497,7 @@ export default function ScanPage() {
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[280px_1fr] lg:items-center">
+        <div className="grid gap-5 xl:grid-cols-[280px_1fr] xl:items-center">
           <div className="rounded-[24px] border border-slate-100 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-slate-950/30">
             <AuditScoreGauge score={audit.scores.seo} />
             <div className="mt-4 border-t border-slate-200 pt-4 text-center dark:border-white/10">
@@ -518,7 +518,7 @@ export default function ScanPage() {
               <AuditStatBar label="Warnings" value={auditStats.warnings} color="#f59e0b" max={maxAuditStat} />
               <AuditStatBar label="Passed" value={auditStats.passed} color="#10b981" max={maxAuditStat} />
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
               <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3 text-center dark:border-blue-400/20 dark:bg-blue-500/10">
                 <p className="text-xl font-black text-blue-600 dark:text-blue-300">{audit.scores.performance}</p>
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Speed</p>
@@ -539,22 +539,22 @@ export default function ScanPage() {
           </div>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-orange-200 bg-orange-50 p-3 sm:flex sm:items-center sm:justify-between sm:gap-4 dark:border-orange-400/20 dark:bg-orange-500/10">
+        <div className="mt-5 rounded-2xl border border-orange-200 bg-orange-50 p-3 dark:border-orange-400/20 dark:bg-orange-500/10 xl:flex xl:items-center xl:justify-between xl:gap-4">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 dark:bg-orange-400/15 dark:text-orange-200">
               <TrendingUp className="h-4 w-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="font-bold">Want to fix these issues and track progress?</p>
               <p className="text-sm text-muted-foreground">Create a shareable report, compare competitors, or export a PDF for your developer.</p>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-0 sm:flex">
-            <Button variant="outline" size="sm" onClick={openStoredOrGeneratedPdf} disabled={pdfLoading} className="bg-white/80 dark:bg-slate-950/40">
+          <div className="mt-3 grid grid-cols-2 gap-2 xl:mt-0 xl:flex xl:shrink-0">
+            <Button variant="outline" size="sm" onClick={openStoredOrGeneratedPdf} disabled={pdfLoading} className="w-full bg-white/80 dark:bg-slate-950/40 xl:w-auto">
               <Download className="w-4 h-4 mr-2" />
               {pdfLoading ? 'Preparing' : entitlements.canExportPdf ? 'PDF' : 'PDF Pro'}
             </Button>
-            <Button size="sm" onClick={createShareLink} disabled={shareLoading} className="bg-orange-500 text-white hover:bg-orange-600">
+            <Button size="sm" onClick={createShareLink} disabled={shareLoading} className="w-full bg-orange-500 text-white hover:bg-orange-600 xl:w-auto">
               <Share2 className="w-4 h-4 mr-2" />
               {shareLoading ? 'Creating' : 'Share'}
             </Button>

@@ -34,6 +34,10 @@ export function useScanProgress(sessionId: string | null) {
     }
 
     let mounted = true
+    const channelId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
     const loadInitial = async () => {
       const { data } = await supabase
@@ -56,7 +60,7 @@ export function useScanProgress(sessionId: string | null) {
     void loadInitial()
 
     const channel = supabase
-      .channel(`scan-session-${sessionId}`)
+      .channel(`scan-session-${sessionId}-${channelId}`)
       .on(
         'postgres_changes',
         {
@@ -66,6 +70,8 @@ export function useScanProgress(sessionId: string | null) {
           filter: `id=eq.${sessionId}`,
         },
         payload => {
+          if (!mounted) return
+
           const row = payload.new as Partial<ScanSessionRow>
           setProgress(current => ({
             progress: typeof row.progress === 'number' ? row.progress : current.progress,
@@ -85,4 +91,3 @@ export function useScanProgress(sessionId: string | null) {
 
   return progress
 }
-
