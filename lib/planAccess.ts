@@ -10,7 +10,6 @@ export interface PlanEntitlements {
   canCompare: boolean
   canUseTrends: boolean
   canUseBacklinks: boolean
-  canUseKeywords: boolean
 }
 
 const entitlements: Record<Plan, PlanEntitlements> = {
@@ -22,7 +21,6 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     canCompare: false,
     canUseTrends: false,
     canUseBacklinks: false,
-    canUseKeywords: false,
   },
   pro: {
     plan: 'pro',
@@ -32,7 +30,6 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     canCompare: true,
     canUseTrends: true,
     canUseBacklinks: true,
-    canUseKeywords: true,
   },
   business: {
     plan: 'business',
@@ -42,7 +39,6 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     canCompare: true,
     canUseTrends: true,
     canUseBacklinks: true,
-    canUseKeywords: true,
   },
   agency: {
     plan: 'agency',
@@ -52,7 +48,6 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     canCompare: true,
     canUseTrends: true,
     canUseBacklinks: true,
-    canUseKeywords: true,
   },
 }
 
@@ -86,4 +81,3 @@ export const getSubscriptionWindow = (interval: BillingInterval, start = new Dat
     expiresAt: end.toISOString(),
   }
 }
-

@@ -45,7 +45,6 @@ const plans: UpgradePlan[] = [
       { text: 'PDF export', included: false },
       { text: 'Competitor comparison', included: false },
       { text: 'Backlink monitor', included: false },
-      { text: 'Keyword tracking', included: false },
       { text: 'Trend dashboard', included: false },
     ],
     cta: 'Current Plan',
@@ -64,7 +63,6 @@ const plans: UpgradePlan[] = [
       { text: 'PDF export (branded)', included: true },
       { text: 'Competitor comparison', included: true },
       { text: 'Backlink monitor', included: true },
-      { text: 'Keyword tracking (50)', included: true },
       { text: 'Full trend dashboard', included: true },
       { text: 'Priority support', included: true },
       { text: 'API access', included: false },
@@ -252,7 +250,7 @@ export default function UpgradePage() {
         throw new Error(data.error || 'Coupon could not be redeemed')
       }
 
-      toast.success(data.message || 'Business plan unlocked')
+      toast.success(data.message || `${data.plan === 'pro' ? 'Pro' : 'Business'} plan unlocked`)
       setCurrentPlan(data.plan)
       setCurrentBillingInterval(data.billingInterval || 'yearly')
       setPlanStartedAt(data.planStartedAt || new Date().toISOString())
@@ -414,9 +412,9 @@ export default function UpgradePage() {
               <Gift className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-semibold">Have a business coupon?</h2>
+              <h2 className="font-semibold">Have a Pro or Business coupon?</h2>
               <p className="text-sm text-muted-foreground">
-                Redeem a valid coupon to unlock Business without manual payment.
+                Redeem a valid coupon to unlock Pro or Business without manual payment. Coupon codes are not case sensitive.
               </p>
             </div>
           </div>

@@ -3,7 +3,6 @@ import { supabaseAdmin } from '@/lib/supabase/server'
 
 const relatedUserTables = [
   'audits',
-  'keyword_tracks',
   'manual_payments',
   'scan_sessions',
 ] as const

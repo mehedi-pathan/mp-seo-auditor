@@ -119,7 +119,7 @@ const pricingPlans: Array<{
       'PDF export with branding',
       'Competitor comparison',
       'Backlink monitor',
-      'Keyword tracking for 50 terms',
+      'Competitor comparison and backlink tools',
     ],
   },
   {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +29,15 @@ export function CompareTab({ audit }: CompareTabProps) {
   const [competitorUrl, setCompetitorUrl] = useState('')
   const [competitor, setCompetitor] = useState<AuditResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      inputRef.current?.focus()
+    }, 120)
+
+    return () => window.clearTimeout(timer)
+  }, [])
 
   const runCompare = async () => {
     const url = normalizeUrl(competitorUrl)
@@ -81,6 +90,7 @@ export function CompareTab({ audit }: CompareTabProps) {
 
       <div className="grid gap-2">
         <Input
+          ref={inputRef}
           value={competitorUrl}
           onChange={event => setCompetitorUrl(event.target.value)}
           placeholder="competitor.com/page"

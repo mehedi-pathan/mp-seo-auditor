@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface TabNavProps {
   tabs: string[]
@@ -12,6 +12,22 @@ interface TabNavProps {
 
 export function TabNav({ tabs, activeTab, onChange }: TabNavProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [showArrows, setShowArrows] = useState(false)
+
+  useEffect(() => {
+    const element = scrollRef.current
+    if (!element) return
+
+    const updateOverflow = () => {
+      setShowArrows(element.scrollWidth > element.clientWidth + 2)
+    }
+
+    updateOverflow()
+    const resizeObserver = new ResizeObserver(updateOverflow)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
+  }, [tabs])
 
   const scrollTabs = (direction: 'left' | 'right') => {
     scrollRef.current?.scrollBy({
@@ -21,28 +37,34 @@ export function TabNav({ tabs, activeTab, onChange }: TabNavProps) {
   }
 
   return (
-    <div className="relative -mx-4 border-b border-border">
-      <button
-        type="button"
-        aria-label="Scroll tabs left"
-        onClick={() => scrollTabs('left')}
-        className="absolute left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/95 shadow-sm"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        aria-label="Scroll tabs right"
-        onClick={() => scrollTabs('right')}
-        className="absolute right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/95 shadow-sm"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background via-background/80 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background via-background/80 to-transparent" />
+    <div className="relative -mx-4 border-b border-border lg:mx-0">
+      {showArrows && (
+        <>
+          <button
+            type="button"
+            aria-label="Scroll tabs left"
+            onClick={() => scrollTabs('left')}
+            className="absolute left-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/95 shadow-sm"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Scroll tabs right"
+            onClick={() => scrollTabs('right')}
+            className="absolute right-1 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/95 shadow-sm"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background via-background/80 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background via-background/80 to-transparent" />
+        </>
+      )}
       <div
         ref={scrollRef}
-        className="w-full overflow-x-auto overscroll-x-contain scroll-smooth px-11 [touch-action:pan-x] [scrollbar-width:thin]"
+        className={`w-full overflow-x-auto overscroll-x-contain scroll-smooth [touch-action:pan-x] [scrollbar-width:thin] ${
+          showArrows ? 'px-11' : 'px-0'
+        }`}
       >
         <div className="flex w-max min-w-full gap-1 px-1">
           {tabs.map((tab, i) => (

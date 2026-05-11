@@ -10,18 +10,19 @@ import { supabase } from '@/lib/supabase/client'
 import type { Plan, UserProfile } from '@/types'
 import { getEffectivePlan } from '@/lib/planAccess'
 import { getPlanDisplay } from '@/lib/planDisplay'
+import { subscribeGlobalScan, type ClientScanJobSnapshot } from '@/lib/clientScanManager'
+import { useScanProgress } from '@/hooks/useScanProgress'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import {
+  AlertTriangle,
+  CheckCircle2,
   Crown,
   ExternalLink,
-  LogOut,
   Mail,
   MessageCircle,
-  Moon,
   RefreshCw,
   Search,
-  Sun,
   User,
 } from 'lucide-react'
 
@@ -31,7 +32,6 @@ const dashboardRoutes = [
   '/history',
   '/backlinks',
   '/profile',
-  '/keywords',
   '/trends',
   '/tips',
   '/upgrade',
@@ -44,12 +44,73 @@ const desktopNavItems = [
   { label: 'History', href: '/history', iconSrc: '/desktop-history-icon.svg' },
   { label: 'Backlinks', href: '/backlinks', iconSrc: '/desktop-link-icon.svg' },
   { label: 'Trends', href: '/trends', iconSrc: '/desktop-trending-icon.svg' },
-  { label: 'Keywords', href: '/keywords', iconSrc: '/desktop-keywords-icon.svg' },
   { label: 'Profile', href: '/profile', iconSrc: '/desktop-profile-icon.svg' },
 ]
 
 const whatsappUrl = 'https://wa.me/8801622839616?text=Hi%20MP%20SEO%20team%2C%20I%20need%20help%20improving%20my%20website%20SEO%2C%20speed%2C%20and%20performance.'
 const emailUrl = 'mailto:mehedipathantext@gmail.com?subject=Website%20improvement%20request&body=Hi%20MP%20SEO%20team%2C%0A%0AI%20need%20help%20improving%20my%20website%20SEO%2C%20speed%2C%20and%20performance.%0A%0AWebsite%20URL%3A%20'
+
+interface GlobalScanStatusProps {
+  scan: ClientScanJobSnapshot | null
+  progress: number
+  collapsed?: boolean
+}
+
+function GlobalScanStatus({ scan, progress, collapsed = false }: GlobalScanStatusProps) {
+  if (!scan) return null
+
+  const domain = scan.url.replace(/^https?:\/\//, '').replace(/\/$/, '')
+  const isRunning = scan.status === 'running'
+  const isComplete = scan.status === 'complete'
+  const label = isRunning ? `Scanning ${Math.max(1, Math.min(100, progress))}%` : isComplete ? 'Report ready' : 'Scan failed'
+  const Icon = isComplete ? CheckCircle2 : scan.status === 'error' ? AlertTriangle : RefreshCw
+
+  if (collapsed) {
+    return (
+      <Link
+        href="/scan"
+        prefetch
+        className={`group relative grid h-11 w-11 place-items-center rounded-2xl border shadow-sm transition-colors ${
+          isComplete
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200'
+            : scan.status === 'error'
+              ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-200'
+              : 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-blue-200'
+        }`}
+        title={label}
+      >
+        <Icon className={`h-5 w-5 ${isRunning ? 'animate-spin' : ''}`} />
+        {isRunning && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-blue-500 ring-2 ring-white dark:ring-[#0b1626]" />}
+        <span className="pointer-events-none absolute right-[calc(100%+10px)] z-50 max-w-56 truncate rounded-full border border-blue-100 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 opacity-0 shadow-lg shadow-blue-100/60 transition-opacity delay-500 duration-200 group-hover:opacity-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/30">
+          {label}
+        </span>
+      </Link>
+    )
+  }
+
+  return (
+    <Link
+      href="/scan"
+      prefetch
+      className="block rounded-[22px] border border-blue-100 bg-blue-50/80 p-3 text-sm shadow-sm transition-colors hover:bg-blue-100/80 dark:border-blue-400/20 dark:bg-blue-500/10 dark:hover:bg-blue-500/15"
+    >
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-blue-600 shadow-sm dark:bg-white/10 dark:text-blue-200">
+          <Icon className={`h-5 w-5 ${isRunning ? 'animate-spin' : ''}`} />
+        </span>
+        <span className="min-w-0">
+          <span className="block font-black text-slate-950 dark:text-white">{label}</span>
+          <span className="block truncate text-xs text-slate-500 dark:text-slate-400">{domain}</span>
+        </span>
+      </div>
+      {isRunning && (
+        <span className="mt-3 block h-2 overflow-hidden rounded-full bg-white dark:bg-white/10">
+          <span className="block h-full rounded-full bg-blue-400 transition-[width] duration-500" style={{ width: `${Math.max(8, Math.min(100, progress))}%` }} />
+        </span>
+      )}
+    </Link>
+  )
+}
 
 interface DesktopRightSidebarProps {
   user: UserProfile | null
@@ -57,6 +118,8 @@ interface DesktopRightSidebarProps {
   scansUsed: number
   scansLimit: number | null
   collapsed: boolean
+  scanStatus: ClientScanJobSnapshot | null
+  scanProgress: number
   onToggleCollapsed: () => void
   onLogout: () => void
 }
@@ -67,6 +130,8 @@ function DesktopRightSidebar({
   scansUsed,
   scansLimit,
   collapsed,
+  scanStatus,
+  scanProgress,
   onToggleCollapsed,
   onLogout,
 }: DesktopRightSidebarProps) {
@@ -83,7 +148,7 @@ function DesktopRightSidebar({
 
   return (
     <aside
-      className={`absolute bottom-0 right-0 top-0 z-30 hidden max-h-screen flex-col overflow-visible border-l border-blue-100 bg-white/90 shadow-[-24px_0_70px_rgba(96,165,250,0.12)] backdrop-blur-2xl transition-[width,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex dark:border-white/10 dark:bg-[#0b1626]/94 dark:shadow-black/30 ${
+      className={`absolute bottom-0 right-0 top-0 z-30 hidden max-h-screen flex-col overflow-visible border-l border-blue-200 bg-[linear-gradient(180deg,#eaf5ff_0%,#f8fbff_48%,#edf7ff_100%)] shadow-[-24px_0_70px_rgba(96,165,250,0.16)] backdrop-blur-2xl transition-[width,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:flex dark:border-blue-400/15 dark:bg-[linear-gradient(180deg,#07111f_0%,#0b1626_54%,#08111f_100%)] dark:shadow-black/30 ${
         collapsed ? 'w-[84px] p-3.5' : 'w-[280px] p-4'
       }`}
     >
@@ -95,20 +160,24 @@ function DesktopRightSidebar({
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         <img
-          src="/desktop-sidebar-arrow.svg"
+          src="/desktop-sidebar-arrow.png"
           alt=""
-          className={`h-4 w-4 object-contain opacity-80 drop-shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-100 dark:invert ${
+          className={`sidebar-toggle-swing h-6 w-6 object-contain opacity-95 drop-shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-100 ${
             collapsed ? 'rotate-0' : 'rotate-180'
           }`}
         />
       </button>
 
       <div className="flex min-h-[56px] items-center justify-center transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]">
-        <div className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm transition-[width,height,padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] dark:border-white/10 ${
+        <Link href="/dashboard" prefetch className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm transition-[width,height,padding,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 dark:border-white/10 ${
           collapsed ? 'h-10 w-10 p-1' : 'h-14 w-14 p-1.5'
-        }`}>
+        }`} title="Go to dashboard">
           <img src="/mp-seo-logo.jpeg" alt="MP SEO Auditor brand logo" className="h-full w-full object-contain" />
-        </div>
+        </Link>
+      </div>
+
+      <div className={collapsed ? 'mt-3 grid place-items-center' : 'mt-3'}>
+        <GlobalScanStatus scan={scanStatus} progress={scanProgress} collapsed={collapsed} />
       </div>
 
       <div className={`overflow-hidden rounded-[24px] border bg-[linear-gradient(135deg,#f8fbff,#edf7ff)] shadow-lg shadow-blue-100/50 transition-[max-height,margin,opacity,padding,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] dark:bg-[linear-gradient(135deg,#101b2d,#0d1727)] dark:shadow-black/20 ${
@@ -150,8 +219,8 @@ function DesktopRightSidebar({
               key={item.href}
               href={item.href}
               prefetch
-              className={`group flex items-center gap-3 rounded-2xl text-sm font-semibold transition-colors ${
-                collapsed ? 'h-10 w-10 justify-center px-0 py-0' : 'px-2.5 py-1.5'
+              className={`group relative rounded-2xl text-sm font-semibold transition-colors ${
+                collapsed ? 'grid h-11 w-11 place-items-center p-0' : 'flex items-center gap-3 px-2.5 py-1.5'
               } ${
                 isActive
                   ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-200 dark:ring-blue-400/20'
@@ -162,16 +231,21 @@ function DesktopRightSidebar({
               title={item.label}
             >
               <span className={`flex items-center justify-center rounded-xl transition-colors ${
-                collapsed ? 'h-10 w-10 bg-transparent' : 'h-9 w-9 bg-blue-50 text-blue-600 group-hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-300'
+                collapsed ? 'h-11 w-11 bg-transparent' : 'h-9 w-9 bg-blue-50 text-blue-600 group-hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-300'
               }`}>
                 <img
                   src={item.iconSrc}
                   alt=""
-                  className={`h-6 w-6 object-contain transition-transform duration-300 group-hover:scale-105 dark:invert ${
+                  className={`mx-auto block h-6 w-6 shrink-0 object-contain object-center transition-transform duration-300 group-hover:scale-105 dark:invert ${
                     isActive ? 'opacity-100' : 'opacity-75'
                   }`}
                 />
               </span>
+              {collapsed && (
+                <span className="pointer-events-none absolute right-[calc(100%+10px)] z-50 rounded-full border border-blue-100 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 opacity-0 shadow-lg shadow-blue-100/60 transition-opacity delay-500 duration-200 group-hover:opacity-100 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/30">
+                  {item.label}
+                </span>
+              )}
               <span
                 aria-hidden={collapsed}
                 className={`overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ${
@@ -237,12 +311,16 @@ function DesktopRightSidebar({
             type="button"
             onClick={() => setTheme(isDarkTheme ? 'light' : 'dark')}
             className={`flex flex-col items-center justify-center gap-2 text-sm font-bold text-slate-900 transition-colors hover:bg-blue-100/70 dark:text-white dark:hover:bg-white/[0.08] ${
-              collapsed ? 'h-12 w-12 rounded-2xl border border-blue-100 bg-blue-50 dark:border-white/10 dark:bg-white/[0.04]' : 'min-h-[78px] border-r border-blue-100 dark:border-white/10'
+              collapsed ? 'h-12 w-12 rounded-2xl border border-blue-100 bg-white shadow-sm dark:border-blue-400/20 dark:bg-blue-500/10' : 'min-h-[78px] border-r border-blue-100 dark:border-white/10'
             }`}
             title={isDarkTheme ? 'Light mode' : 'Dark mode'}
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm dark:bg-blue-500/15 dark:text-blue-200">
-              {isDarkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-sm dark:bg-blue-400/15 dark:text-blue-200">
+              <img
+                src="/sidebar-theme-toggle-icon.svg"
+                alt=""
+                className="h-5 w-5 object-contain dark:invert"
+              />
             </span>
             <span className={collapsed ? 'sr-only' : ''}>{isDarkTheme ? 'Light mode' : 'Dark mode'}</span>
           </button>
@@ -250,12 +328,16 @@ function DesktopRightSidebar({
             type="button"
             onClick={onLogout}
             className={`flex flex-col items-center justify-center gap-2 text-sm font-bold text-red-800 transition-colors hover:bg-red-50 dark:text-red-200 dark:hover:bg-red-500/10 ${
-              collapsed ? 'h-12 w-12 rounded-2xl border border-red-100 bg-red-50 dark:border-red-400/20 dark:bg-red-500/10' : 'min-h-[78px]'
+              collapsed ? 'h-12 w-12 rounded-2xl border border-red-100 bg-white shadow-sm dark:border-red-400/20 dark:bg-red-500/10' : 'min-h-[78px]'
             }`}
             title="Sign out"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 text-red-600 shadow-sm dark:bg-red-500/15 dark:text-red-200">
-              <LogOut className="h-5 w-5" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-red-50 text-red-600 shadow-sm dark:bg-red-400/15 dark:text-red-200">
+              <img
+                src="/sidebar-sign-out-icon.svg"
+                alt=""
+                className="h-5 w-5 object-contain dark:invert"
+              />
             </span>
             <span className={collapsed ? 'sr-only' : ''}>Sign out</span>
           </button>
@@ -266,14 +348,24 @@ function DesktopRightSidebar({
   )
 }
 
-function DesktopTopNavbar({ user, plan }: { user: UserProfile | null; plan: Plan }) {
+function DesktopTopNavbar({
+  user,
+  plan,
+  scanStatus,
+  scanProgress,
+}: {
+  user: UserProfile | null
+  plan: Plan
+  scanStatus: ClientScanJobSnapshot | null
+  scanProgress: number
+}) {
   const pathname = usePathname()
   const activePlan = getPlanDisplay(plan)
   const PlanIcon = activePlan.icon
   const currentItem = desktopNavItems.find(item => pathname === item.href || pathname.startsWith(`${item.href}/`))
 
   return (
-    <header className="hidden shrink-0 border-b border-blue-100 bg-white/78 px-8 py-4 backdrop-blur-2xl lg:block dark:border-white/10 dark:bg-[#07111f]/78">
+    <header className="hidden shrink-0 border-b border-blue-200 bg-[linear-gradient(135deg,#eaf5ff_0%,#f8fbff_55%,#edf7ff_100%)] px-8 py-4 backdrop-blur-2xl lg:block dark:border-blue-400/15 dark:bg-[linear-gradient(135deg,#07111f_0%,#0b1626_58%,#08111f_100%)]">
       <div className="mx-auto flex h-12 max-w-[1160px] items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm dark:border-white/10">
@@ -288,6 +380,7 @@ function DesktopTopNavbar({ user, plan }: { user: UserProfile | null; plan: Plan
         </div>
 
         <div className="flex shrink-0 items-center gap-3 self-center">
+          <GlobalScanStatus scan={scanStatus} progress={scanProgress} />
           <Link
             href="/upgrade"
             prefetch
@@ -304,11 +397,24 @@ function DesktopTopNavbar({ user, plan }: { user: UserProfile | null; plan: Plan
             <Search className="h-4 w-4" />
             New scan
           </Link>
-          <Link href="/profile" prefetch className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-blue-100 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="User profile avatar" className="h-full w-full object-cover" />
-            ) : (
-              <User className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+          <Link href="/profile" prefetch className="relative flex h-11 w-11 items-center justify-center rounded-full border border-blue-100 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
+            <span className="absolute inset-0 overflow-hidden rounded-full">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="User profile avatar" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center">
+                  <User className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+                </span>
+              )}
+            </span>
+            {(plan === 'pro' || plan === 'business' || plan === 'agency') && (
+              <span className={`absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full border border-white px-1 text-[9px] font-black shadow-sm dark:border-[#07111f] ${
+                plan === 'pro'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-amber-400 text-amber-950'
+              }`}>
+                {plan === 'pro' ? 'PRO' : <PlanIcon className="h-3 w-3" />}
+              </span>
             )}
           </Link>
         </div>
@@ -329,6 +435,7 @@ export default function DashboardLayout({
   const [isLoading, setIsLoading] = useState(true)
   const [pullDistance, setPullDistance] = useState(0)
   const [isPullRefreshing, setIsPullRefreshing] = useState(false)
+  const [scanStatus, setScanStatus] = useState<ClientScanJobSnapshot | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const touchStartRef = useRef<{
     x: number
@@ -337,6 +444,8 @@ export default function DashboardLayout({
     canPullRefresh: boolean
   } | null>(null)
   const router = useRouter()
+  const liveScanProgress = useScanProgress(scanStatus?.status === 'running' ? scanStatus.sessionId : null)
+  const globalScanProgress = scanStatus?.status === 'complete' ? 100 : Math.max(liveScanProgress.progress || 0, scanStatus?.status === 'running' ? 8 : 0)
 
   const getLimit = (plan?: string | null) => {
     if (plan === 'business' || plan === 'agency') return null
@@ -432,6 +541,10 @@ export default function DashboardLayout({
 
     window.addEventListener('audit-completed', handleAuditCompleted)
     return () => window.removeEventListener('audit-completed', handleAuditCompleted)
+  }, [])
+
+  useEffect(() => {
+    return subscribeGlobalScan(setScanStatus)
   }, [])
 
   useEffect(() => {
@@ -550,7 +663,7 @@ export default function DashboardLayout({
           if (!desktopSidebarCollapsed) setDesktopSidebarCollapsed(true)
         }}
       >
-        <DesktopTopNavbar user={user} plan={effectivePlan} />
+        <DesktopTopNavbar user={user} plan={effectivePlan} scanStatus={scanStatus} scanProgress={globalScanProgress} />
       </div>
       {(pullDistance > 0 || isPullRefreshing) && (
         <div
@@ -601,6 +714,8 @@ export default function DashboardLayout({
         scansUsed={scansUsed}
         scansLimit={getLimit(effectivePlan)}
         collapsed={desktopSidebarCollapsed}
+        scanStatus={scanStatus}
+        scanProgress={globalScanProgress}
         onToggleCollapsed={() => setDesktopSidebarCollapsed(current => !current)}
         onLogout={handleLogout}
       />

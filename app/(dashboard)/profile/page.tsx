@@ -521,7 +521,7 @@ export default function ProfilePage() {
           <div className="min-w-0">
             <p className="font-bold text-red-950 dark:text-red-100">Delete account</p>
             <p className="mt-1 text-sm leading-5 text-red-700 dark:text-red-200/80">
-              This permanently removes your profile, saved audits, keywords, scan sessions, avatar, and login account.
+              This permanently removes your profile, saved audits, scan sessions, avatar, and login account.
             </p>
           </div>
         </div>

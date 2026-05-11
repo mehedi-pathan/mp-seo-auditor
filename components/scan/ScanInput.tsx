@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import {
   ArrowRight,
   BarChart3,
@@ -19,14 +20,15 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { loadLocalAuditArchive, type LocalAuditArchiveItem } from '@/lib/localAuditArchive'
+import { TechnicalSeoLab } from '@/components/seo/TechnicalSeoLab'
 
 interface ScanInputProps {
   onScan: (url: string) => Promise<void>
   loading?: boolean
   initialUrl?: string
 }
-
-const examples = ['mehedipathan.online', 'serverbd.net']
 
 const upcomingAuditChecks = [
   { title: 'Meta Title Test', text: 'Checks whether the page title is clear, keyword relevant, and search friendly.', category: 'Metadata' },
@@ -123,9 +125,11 @@ function UpcomingAuditChecks() {
 export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInputProps) {
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
+  const [recentArchive, setRecentArchive] = useState<LocalAuditArchiveItem[]>([])
 
   useEffect(() => {
     if (initialUrl) setUrl(initialUrl)
+    setRecentArchive(loadLocalAuditArchive().slice(0, 4))
   }, [initialUrl])
 
   const validateUrl = (urlString: string): boolean => {
@@ -159,6 +163,57 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
       handleScan()
     }
   }
+
+  const recentSearches = recentArchive.slice(0, 4)
+
+  const RecentSearchesCard = ({ compact = false }: { compact?: boolean }) => (
+    <div className={`rounded-[28px] border border-blue-100 bg-white/72 shadow-lg shadow-blue-100/35 dark:border-white/10 dark:bg-white/[0.04] ${compact ? 'p-4' : 'p-4'}`}>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
+            Recent searches
+          </p>
+          <h3 className="mt-1 text-lg font-black text-slate-950 dark:text-white">
+            Domains you are tracking
+          </h3>
+        </div>
+        <Button asChild variant="outline" size="sm" className="rounded-full bg-white dark:bg-[#0d1727]">
+          <Link href="/history">
+            View history
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {recentSearches.length > 0 ? recentSearches.map(item => (
+          <Link
+            key={item.cacheId}
+            href={`/scan?cacheId=${encodeURIComponent(item.cacheId)}`}
+            className="group flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-blue-50 bg-[#f8fbff] p-3 transition-colors hover:border-blue-200 hover:bg-blue-50 dark:border-white/10 dark:bg-[#0d1727] dark:hover:bg-white/[0.06]"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                <Globe2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-slate-950 dark:text-white">{item.audit.domain}</p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">{item.audit.url}</p>
+              </div>
+            </div>
+            <Badge className="shrink-0 bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200">{item.audit.scores.seo}</Badge>
+          </Link>
+        )) : (
+          <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50/70 p-5 text-center md:col-span-2 dark:border-blue-400/20 dark:bg-blue-500/10">
+            <p className="font-bold text-slate-950 dark:text-white">No recent searches yet</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Start with your homepage, product page, or competitor URL.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <>
@@ -209,19 +264,9 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
             <ArrowRight className="h-4 w-4" />
           </Button>
 
-          <div className="flex flex-wrap gap-2">
-            {examples.map(example => (
-              <button
-                key={example}
-                type="button"
-                className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                onClick={() => setUrl(example)}
-              >
-                {example}
-              </button>
-            ))}
-          </div>
         </Card>
+
+        <RecentSearchesCard compact />
 
         <div className="grid grid-cols-3 gap-3">
           {[
@@ -243,6 +288,8 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
           Better SEO starts with knowing what blocks crawling, ranking, and page experience.
         </p>
 
+        <TechnicalSeoLab compact />
+
         <UpcomingAuditChecks />
       </div>
     </motion.div>
@@ -259,17 +306,17 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
                 <Sparkles className="h-3.5 w-3.5" />
                 Google SEO readiness scan
               </div>
-              <h1 className="mt-5 max-w-2xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 dark:text-white">
-                Audit your website and find what to improve for Google.
+              <h1 className="mt-5 max-w-3xl text-5xl font-black leading-[1.02] tracking-tight text-slate-950 dark:text-white">
+                Search any URL and get a clear SEO action plan.
               </h1>
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-                Check SEO, speed, accessibility, metadata, headings, links, and developer fixes in one clear report built for owners and developers.
+              <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">
+                Scan speed, accessibility, headings, metadata, links, content quality, and developer fixes without leaving the dashboard.
               </p>
 
               <Card className="mt-8 rounded-[32px] border-blue-200 bg-[#f8fbff] p-6 shadow-xl shadow-blue-100/60 dark:border-white/10 dark:bg-[#0d1727] dark:shadow-black/20">
                 <label htmlFor="desktop-scan-url" className="flex items-center gap-2 text-sm font-black text-slate-800 dark:text-slate-100">
                   <Link2 className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-                  Enter website URL
+                  Website URL
                 </label>
                 <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                   <div className="relative">
@@ -277,7 +324,7 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
                     <Input
                       id="desktop-scan-url"
                       type="url"
-                      placeholder="example.com or https://example.com"
+                      placeholder="https://yourwebsite.com"
                       value={url}
                       onChange={e => setUrl(e.target.value)}
                       onKeyDown={handleKeyPress}
@@ -291,25 +338,37 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
                     size="lg"
                     className="h-16 rounded-[22px] px-8 text-base font-black shadow-lg shadow-blue-200/70 dark:shadow-blue-950/20"
                   >
-                    {loading ? 'Scanning...' : 'Start SEO Audit'}
+                    {loading ? 'Scanning...' : 'Scan Now'}
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </div>
                 {error && <p className="mt-3 text-sm font-medium text-red-500">{error}</p>}
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {examples.map(example => (
-                    <button
-                      key={example}
-                      type="button"
-                      className="rounded-full border border-blue-100 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]"
-                      onClick={() => setUrl(example)}
-                    >
-                      {example}
-                    </button>
-                  ))}
+                <div className="mt-4 grid gap-3 border-t border-blue-100 pt-4 sm:grid-cols-3 dark:border-white/10">
+                  {[
+                    { label: 'Private', text: 'User data is safe', icon: ShieldCheck },
+                    { label: 'Live', text: 'Scan progress', icon: Zap },
+                    { label: 'Actionable', text: 'Developer fixes', icon: Target },
+                  ].map(item => {
+                    const Icon = item.icon
+                    return (
+                      <div key={item.label} className="flex items-center gap-3 rounded-2xl bg-white px-3 py-3 dark:bg-white/[0.04]">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span>
+                          <span className="block text-sm font-bold text-slate-950 dark:text-white">{item.label}</span>
+                          <span className="block text-xs text-slate-500 dark:text-slate-400">{item.text}</span>
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </Card>
+
+              <div className="mt-6">
+                <RecentSearchesCard />
+              </div>
             </div>
 
             <div className="relative hidden min-h-[300px] 2xl:block" aria-hidden="true">
@@ -392,7 +451,8 @@ export function ScanInput({ onScan, loading = false, initialUrl = '' }: ScanInpu
         </aside>
       </div>
 
-      <div className="mx-auto mt-6 max-w-[1180px]">
+      <div className="mx-auto mt-6 max-w-[1180px] space-y-6">
+        <TechnicalSeoLab />
         <UpcomingAuditChecks />
       </div>
     </motion.div>

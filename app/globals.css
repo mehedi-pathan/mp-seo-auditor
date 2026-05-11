@@ -75,6 +75,7 @@
 }
 
 @theme inline {
+  --breakpoint-lg: 40.625rem;
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
   --color-background: var(--background);
@@ -172,8 +173,36 @@
   animation: brand-marquee 52s linear infinite;
 }
 
+@keyframes sidebar-toggle-swing {
+  0% {
+    transform: translateX(0) rotate(var(--sidebar-toggle-rotation, 0deg)) scale(1);
+  }
+  22% {
+    transform: translateX(-4px) rotate(var(--sidebar-toggle-rotation, 0deg)) scale(1.04);
+  }
+  44% {
+    transform: translateX(3px) rotate(var(--sidebar-toggle-rotation, 0deg)) scale(1.02);
+  }
+  66% {
+    transform: translateX(-2px) rotate(var(--sidebar-toggle-rotation, 0deg)) scale(1.03);
+  }
+  100% {
+    transform: translateX(0) rotate(var(--sidebar-toggle-rotation, 0deg)) scale(1);
+  }
+}
+
+.sidebar-toggle-swing {
+  --sidebar-toggle-rotation: 0deg;
+  animation: sidebar-toggle-swing 2.1s ease-in-out infinite;
+}
+
+.sidebar-toggle-swing.rotate-180 {
+  --sidebar-toggle-rotation: 180deg;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .brand-marquee {
+  .brand-marquee,
+  .sidebar-toggle-swing {
     animation: none;
   }
 }

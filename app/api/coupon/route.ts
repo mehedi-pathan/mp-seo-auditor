@@ -4,6 +4,7 @@ import type { Plan } from '@/types'
 import { getSubscriptionWindow } from '@/lib/planAccess'
 
 const businessCoupon = process.env.BUSINESS_COUPON_CODE || 'MP100'
+const proCoupon = process.env.PRO_COUPON_CODE || 'MP-PRO'
 
 interface CouponPayload {
   code?: string
@@ -30,11 +31,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Coupon code is required' }, { status: 400 })
     }
 
-    if (normalizedCode !== businessCoupon.toUpperCase()) {
+    const plan: Plan = normalizedCode === businessCoupon.toUpperCase()
+      ? 'business'
+      : normalizedCode === proCoupon.toUpperCase()
+        ? 'pro'
+        : 'free'
+
+    if (plan === 'free') {
       return NextResponse.json({ error: 'Invalid coupon code' }, { status: 400 })
     }
 
-    const plan: Plan = 'business'
     const now = new Date().toISOString()
     const subscription = getSubscriptionWindow('yearly')
     const { error } = await supabaseAdmin
@@ -69,7 +75,7 @@ export async function POST(req: NextRequest) {
       billingInterval: 'yearly',
       planStartedAt: subscription.startedAt,
       planExpiresAt: subscription.expiresAt,
-      message: 'Business plan unlocked',
+      message: `${plan === 'business' ? 'Business' : 'Pro'} plan unlocked`,
     })
   } catch (error) {
     console.error('[coupon]', error)

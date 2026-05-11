@@ -7,7 +7,6 @@ import {
   BarChart3,
   Crown,
   ExternalLink,
-  KeyRound,
   Lightbulb,
   Mail,
   TrendingUp,
@@ -28,7 +27,6 @@ interface AppSidebarProps {
 const menuItems = [
   { label: 'Profile', href: '/profile', icon: User },
   { label: 'Trends', href: '/trends', icon: TrendingUp },
-  { label: 'Keywords', href: '/keywords', icon: KeyRound },
   { label: 'Tips Library', href: '/tips', icon: Lightbulb },
   { label: 'Upgrade Plan', href: '/upgrade', icon: Crown },
 ]

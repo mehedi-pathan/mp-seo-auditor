@@ -12,7 +12,6 @@ import {
   Calendar,
   Globe2,
   HeartHandshake,
-  KeyRound,
   Lightbulb,
   Link2,
   Search,
@@ -27,6 +26,10 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuditStore } from '@/store/useAuditStore'
+import { startClientScanJob } from '@/lib/clientScanManager'
+import { normalizeWebsiteUrl } from '@/lib/normalizeUrl'
+import { supabase } from '@/lib/supabase/client'
+import { TechnicalSeoLab } from '@/components/seo/TechnicalSeoLab'
 
 const donateUrl = 'https://wa.me/8801622839616?text=I%20want%20to%20donate%20to%20support%20MP%20SEO%20Auditor'
 const animatedPlaceholders = ['https://yourwebsite.com', 'mehedipathan.online', 'serverbd.net', 'shop.example.com']
@@ -208,7 +211,7 @@ export default function DashboardPage() {
 
   const recentAudits = audits.slice(0, 4)
 
-  const startAuditFromDashboard = (event: FormEvent<HTMLFormElement>) => {
+  const startAuditFromDashboard = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const trimmedUrl = auditUrl.trim()
     if (!trimmedUrl) {
@@ -216,7 +219,10 @@ export default function DashboardPage() {
       return
     }
 
-    router.push(`/scan?url=${encodeURIComponent(trimmedUrl)}`)
+    const normalizedUrl = normalizeWebsiteUrl(trimmedUrl)
+    const { data: { user } } = await supabase.auth.getUser()
+    startClientScanJob(normalizedUrl, user?.id)
+    router.push('/scan')
   }
 
   const statCards = [
@@ -436,12 +442,6 @@ export default function DashboardPage() {
         transition={{ delay: 0.2 }}
         className="grid grid-cols-2 gap-3"
       >
-        <Link href="/keywords">
-          <Button variant="outline" className="h-14 w-full justify-start gap-2 rounded-2xl bg-card">
-            <KeyRound className="h-4 w-4" />
-            Keywords
-          </Button>
-        </Link>
         <Button variant="outline" className="h-14 w-full justify-start gap-2 rounded-2xl bg-card" disabled>
           <Target className="h-4 w-4" />
           <span className="min-w-0 flex-1 text-left">Competitor</span>
@@ -459,6 +459,14 @@ export default function DashboardPage() {
             Search Audits
           </Button>
         </Link>
+      </motion.section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.24 }}
+      >
+        <TechnicalSeoLab compact />
       </motion.section>
     </motion.div>
     <motion.div
@@ -644,6 +652,8 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        <TechnicalSeoLab />
+
         <section className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
           <Card className="overflow-hidden rounded-[30px] border-blue-100 bg-white/90 p-0 shadow-xl shadow-blue-100/60 dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/20">
             <div className="flex items-center justify-between border-b border-blue-50 p-5 dark:border-white/10">
@@ -717,9 +727,8 @@ export default function DashboardPage() {
           </Card>
         </section>
 
-        <section className="grid gap-5 md:grid-cols-3">
+        <section className="grid gap-5 md:grid-cols-2">
           {[
-            { label: 'Keyword research', text: 'Find content ideas and search intent.', href: '/keywords', icon: KeyRound },
             { label: 'Backlink check', text: 'Review link opportunities and trust signals.', href: '/backlinks', icon: Link2 },
             { label: 'Trend tracking', text: 'Watch domains improve over time.', href: '/trends', icon: TrendingUp },
           ].map(item => {
