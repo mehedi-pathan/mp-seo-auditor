@@ -20,7 +20,10 @@ export function BottomNav({ avatarUrl }: BottomNavProps) {
   const pathname = usePathname()
 
   return (
-    <div className="absolute inset-x-0 bottom-0 z-40 px-4 pb-3">
+    <div
+      className="absolute inset-x-0 bottom-0 z-40 px-4"
+      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+    >
       <motion.nav
         initial={{ y: 36, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

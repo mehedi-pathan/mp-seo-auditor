@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { supabase } from '@/lib/supabase/client'
 import { AlertTriangle, Camera, Edit3, Loader2, Save, Trash2, User, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -20,10 +21,22 @@ const formatDate = (value: string | null) => {
   }).format(new Date(value))
 }
 
+const PROFILE_DETAILS_EDIT_LOCK_DAYS = 30
+
+const getNextProfileEditDate = (value: string | null) => {
+  if (!value) return null
+  const date = new Date(value)
+  date.setDate(date.getDate() + PROFILE_DETAILS_EDIT_LOCK_DAYS)
+  return date
+}
+
 interface ProfileData {
   name?: string | null
   email?: string | null
   avatar_url?: string | null
+  phone?: string | null
+  work_description?: string | null
+  profile_last_edited_at?: string | null
   plan?: string | null
   billing_interval?: string | null
   plan_started_at?: string | null
@@ -34,10 +47,15 @@ export default function ProfilePage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [workDescription, setWorkDescription] = useState('')
   const [originalName, setOriginalName] = useState('')
   const [originalEmail, setOriginalEmail] = useState('')
+  const [originalPhone, setOriginalPhone] = useState('')
+  const [originalWorkDescription, setOriginalWorkDescription] = useState('')
   const [password, setPassword] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [profileLastEditedAt, setProfileLastEditedAt] = useState<string | null>(null)
   const [plan, setPlan] = useState<Plan>('free')
   const [billingInterval, setBillingInterval] = useState<BillingInterval | null>(null)
   const [planStartedAt, setPlanStartedAt] = useState<string | null>(null)
@@ -48,6 +66,8 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const nextProfileEditDate = getNextProfileEditDate(profileLastEditedAt)
+  const canEditProfileDetails = !nextProfileEditDate || Date.now() >= nextProfileEditDate.getTime()
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -60,7 +80,7 @@ export default function ProfilePage() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('name,email,avatar_url,plan,billing_interval,plan_started_at,plan_expires_at')
+        .select('*')
         .eq('id', user.id)
         .single()
 
@@ -78,14 +98,21 @@ export default function ProfilePage() {
 
       const loadedName = profileData?.name || user.user_metadata?.name || user.user_metadata?.full_name || ''
       const loadedEmail = profileData?.email || user.email || ''
+      const loadedPhone = profileData?.phone || ''
+      const loadedWorkDescription = profileData?.work_description || ''
       const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null
       const loadedAvatar = profileData?.avatar_url || googleAvatar || null
 
       setName(loadedName)
       setEmail(loadedEmail)
+      setPhone(loadedPhone)
+      setWorkDescription(loadedWorkDescription)
       setAvatarUrl(loadedAvatar)
       setOriginalName(loadedName)
       setOriginalEmail(loadedEmail)
+      setOriginalPhone(loadedPhone)
+      setOriginalWorkDescription(loadedWorkDescription)
+      setProfileLastEditedAt(profileData?.profile_last_edited_at || null)
       setPlan((profileData?.plan || 'free') as Plan)
       setBillingInterval((profileData?.billing_interval || null) as BillingInterval | null)
       setPlanStartedAt(profileData?.plan_started_at || null)
@@ -121,14 +148,25 @@ export default function ProfilePage() {
 
     const trimmedName = name.trim()
     const trimmedEmail = email.trim()
+    const trimmedPhone = phone.trim()
+    const trimmedWorkDescription = workDescription.trim()
     const trimmedPassword = password.trim()
     const nameChanged = trimmedName !== originalName
+    const phoneChanged = trimmedPhone !== originalPhone
+    const workDescriptionChanged = trimmedWorkDescription !== originalWorkDescription
     const emailChanged = trimmedEmail !== originalEmail && trimmedEmail !== user.email
     const passwordChanged = Boolean(trimmedPassword)
+    const profileDetailsChanged = nameChanged || phoneChanged || workDescriptionChanged
 
-    if (!nameChanged && !emailChanged && !passwordChanged) {
+    if (!profileDetailsChanged && !emailChanged && !passwordChanged) {
       toast.info('No profile changes to save')
       setIsEditing(false)
+      setIsSaving(false)
+      return
+    }
+
+    if (profileDetailsChanged && !canEditProfileDetails) {
+      toast.error(`Profile details can be edited again on ${formatDate(nextProfileEditDate?.toISOString() || null)}`)
       setIsSaving(false)
       return
     }
@@ -139,20 +177,32 @@ export default function ProfilePage() {
     if (emailChanged) authUpdates.email = trimmedEmail
     if (passwordChanged) authUpdates.password = trimmedPassword
 
-    const { error: authError } = await supabase.auth.updateUser(authUpdates)
+    if (Object.keys(authUpdates).length > 0) {
+      const { error: authError } = await supabase.auth.updateUser(authUpdates)
 
-    if (authError) {
-      toast.error(authError.message)
-      setIsSaving(false)
-      return
+      if (authError) {
+        toast.error(authError.message)
+        setIsSaving(false)
+        return
+      }
     }
 
-    const profileUpdates: { name?: string; email?: string; updated_at: string } = {
+    const profileUpdates: {
+      name?: string
+      email?: string
+      phone?: string | null
+      work_description?: string | null
+      profile_last_edited_at?: string
+      updated_at: string
+    } = {
       updated_at: new Date().toISOString(),
     }
 
     if (nameChanged) profileUpdates.name = trimmedName
     if (emailChanged) profileUpdates.email = trimmedEmail
+    if (phoneChanged) profileUpdates.phone = trimmedPhone || null
+    if (workDescriptionChanged) profileUpdates.work_description = trimmedWorkDescription || null
+    if (profileDetailsChanged) profileUpdates.profile_last_edited_at = profileUpdates.updated_at
 
     const { error: profileError } = await supabase
       .from('profiles')
@@ -165,8 +215,13 @@ export default function ProfilePage() {
       toast.success(email !== user.email ? 'Profile saved. Confirm the new email to finish changing it.' : 'Profile saved')
       setOriginalName(trimmedName)
       setOriginalEmail(trimmedEmail)
+      setOriginalPhone(trimmedPhone)
+      setOriginalWorkDescription(trimmedWorkDescription)
       setName(trimmedName)
       setEmail(trimmedEmail)
+      setPhone(trimmedPhone)
+      setWorkDescription(trimmedWorkDescription)
+      if (profileDetailsChanged) setProfileLastEditedAt(profileUpdates.updated_at)
       setPassword('')
       setIsEditing(false)
       window.dispatchEvent(new CustomEvent('profile-updated', { detail: { name: trimmedName, email: trimmedEmail } }))
@@ -178,6 +233,8 @@ export default function ProfilePage() {
   const cancelEdit = () => {
     setName(originalName)
     setEmail(originalEmail)
+    setPhone(originalPhone)
+    setWorkDescription(originalWorkDescription)
     setPassword('')
     setIsEditing(false)
   }
@@ -328,10 +385,21 @@ export default function ProfilePage() {
           <div className="min-w-0">
             <p className="truncate font-semibold">{name || 'User'}</p>
             <p className="truncate text-xs text-muted-foreground">{email}</p>
+            {workDescription && <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">{workDescription}</p>}
             <p className="mt-1 text-xs text-muted-foreground">
               {avatarUrl ? 'Profile image connected' : 'Upload an image or use your Google photo'}
             </p>
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3 text-xs leading-5 text-slate-600 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-slate-300">
+          {canEditProfileDetails ? (
+            <span>Profile details like name, phone, and work info can be saved once every 30 days.</span>
+          ) : (
+            <span>
+              Profile details are locked until {formatDate(nextProfileEditDate?.toISOString() || null)}. You can still update email, password, and profile image.
+            </span>
+          )}
         </div>
 
         <div className="grid gap-3">
@@ -341,8 +409,32 @@ export default function ProfilePage() {
               value={name}
               onChange={event => setName(event.target.value)}
               placeholder="Your name"
-              disabled={!isEditing}
+              disabled={!isEditing || !canEditProfileDetails}
             />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">Phone number</label>
+            <Input
+              value={phone}
+              onChange={event => setPhone(event.target.value)}
+              type="tel"
+              placeholder="+880 1XXX XXXXXX"
+              disabled={!isEditing || !canEditProfileDetails}
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">What do you do?</label>
+            <Textarea
+              value={workDescription}
+              onChange={event => setWorkDescription(event.target.value)}
+              placeholder="Example: E-commerce owner, developer, agency, local business owner..."
+              className="min-h-24 resize-none"
+              maxLength={180}
+              disabled={!isEditing || !canEditProfileDetails}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">{workDescription.length}/180 characters</p>
           </div>
 
           <div>

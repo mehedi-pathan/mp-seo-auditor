@@ -16,7 +16,7 @@ import { SocialTab } from '@/components/audit-tabs/SocialTab'
 import { LinksTab } from '@/components/audit-tabs/LinksTab'
 import { CompareTab } from '@/components/audit-tabs/CompareTab'
 import { Button } from '@/components/ui/button'
-import { Crown, Download, GitCompareArrows, Lock, RefreshCw, Share2 } from 'lucide-react'
+import { Crown, Download, GitCompareArrows, Lock, RefreshCw, Search, Share2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { AuditResult, Plan } from '@/types'
@@ -271,13 +271,17 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-5 lg:min-h-full lg:bg-[radial-gradient(circle_at_12%_0%,rgba(138,199,255,0.32),transparent_34%),linear-gradient(135deg,#eef6ff_0%,#f8fbff_52%,#edf7ff_100%)] lg:p-8 xl:p-10 dark:lg:bg-[radial-gradient(circle_at_12%_0%,rgba(96,165,250,0.18),transparent_36%),linear-gradient(135deg,#07111f_0%,#0b1626_58%,#08111f_100%)]">
       {/* Score Gauges */}
-      <div className="px-4 pt-5">
-        <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="px-4 pt-5 lg:mx-auto lg:max-w-[1160px] lg:rounded-[34px] lg:border lg:border-blue-200 lg:bg-white/90 lg:p-6 lg:shadow-2xl lg:shadow-blue-100/60 lg:backdrop-blur dark:lg:border-blue-400/20 dark:lg:bg-white/[0.06] dark:lg:shadow-black/20">
+        <div className="mb-4 flex items-start justify-between gap-3 lg:mb-6">
           <div className="min-w-0">
-            <h2 className="break-words text-xl font-bold leading-tight sm:text-2xl">{audit.domain}</h2>
-            <p className="break-all text-xs leading-5 text-muted-foreground">{audit.url}</p>
+            <div className="mb-2 hidden items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 lg:inline-flex dark:bg-blue-500/10 dark:text-blue-200">
+              <Search className="h-3.5 w-3.5" />
+              SEO audit report
+            </div>
+            <h2 className="break-words text-xl font-bold leading-tight sm:text-2xl lg:text-4xl lg:font-black lg:text-slate-950 dark:lg:text-white">{audit.domain}</h2>
+            <p className="break-all text-xs leading-5 text-muted-foreground lg:mt-2 lg:text-sm">{audit.url}</p>
           </div>
           <div className="flex shrink-0 gap-2">
             <Button
@@ -297,13 +301,13 @@ export default function ScanPage() {
         <Button
           variant="outline"
           size="sm"
-          className="mb-4 w-full"
+          className="mb-4 w-full lg:hidden"
           onClick={() => entitlements.canCompare ? setActiveTab(7) : showUpgradePrompt('Competitor comparison')}
         >
           <GitCompareArrows className="h-4 w-4" />
           Compare with Competitor
         </Button>
-        <div className="mb-4 grid grid-cols-2 gap-3">
+        <div className="mb-4 grid grid-cols-2 gap-3 lg:mb-6 lg:max-w-md">
           <Button variant="outline" size="sm" onClick={openStoredOrGeneratedPdf} disabled={pdfLoading}>
             <Download className="w-4 h-4 mr-2" />
             {pdfLoading ? 'Preparing' : entitlements.canExportPdf ? 'PDF' : 'PDF Pro'}
@@ -313,7 +317,7 @@ export default function ScanPage() {
             Share
           </Button>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:rounded-[28px] lg:border lg:border-blue-100 lg:bg-[#f8fbff] lg:p-5 dark:lg:border-white/10 dark:lg:bg-[#0d1727]">
           <div className="min-w-0 flex justify-center">
             <ScoreRing score={audit.scores.seo} label="SEO" color="#2563eb" size="sm" />
           </div>
@@ -327,12 +331,12 @@ export default function ScanPage() {
       </div>
 
       {/* Tabs */}
-      <div className="px-4">
+      <div className="px-4 lg:mx-auto lg:max-w-[1160px] lg:px-0">
         <TabNav tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
       {!entitlements.canViewFullReport && (
-        <div className="px-4">
+        <div className="px-4 lg:mx-auto lg:max-w-[1160px] lg:px-0">
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/25">
             <div className="flex items-start gap-2">
               <Lock className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
@@ -345,7 +349,7 @@ export default function ScanPage() {
       )}
 
       {/* Tab Content */}
-      <div className="min-w-0 px-4 pb-4 [&_*]:min-w-0 [&_p]:break-words [&_h2]:break-words [&_h3]:break-words [&_h4]:break-words [&_li]:break-words">
+      <div className="min-w-0 px-4 pb-4 lg:mx-auto lg:max-w-[1160px] lg:px-0 lg:pb-10 [&_*]:min-w-0 [&_p]:break-words [&_h2]:break-words [&_h3]:break-words [&_h4]:break-words [&_li]:break-words">
         {renderTab()}
       </div>
 

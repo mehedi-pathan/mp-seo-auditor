@@ -218,6 +218,9 @@ export interface UserProfile {
   name: string | null
   email: string
   avatarUrl?: string | null
+  phone?: string | null
+  workDescription?: string | null
+  profileLastEditedAt?: string | null
   plan: Plan
   billingInterval?: BillingInterval | null
   planStartedAt?: string | null

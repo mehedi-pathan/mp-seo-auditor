@@ -19,7 +19,7 @@ export function TopBar({ plan = 'free', onMenuOpen }: TopBarProps) {
   const isPaidPlan = plan === 'pro' || plan === 'business' || plan === 'agency'
 
   return (
-    <div className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur-sm dark:bg-[#08111f]/95">
+    <div className="sticky top-0 z-20 border-b border-border bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-sm dark:bg-[#08111f]/95">
       <div className="grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           <img
