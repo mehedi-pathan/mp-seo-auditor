@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import {
   ArrowRight,
   BarChart3,
@@ -14,9 +14,7 @@ import {
   Globe2,
   HeartHandshake,
   Lightbulb,
-  Moon,
   ShieldCheck,
-  Sun,
   Target,
   Zap,
 } from 'lucide-react'
@@ -48,6 +46,8 @@ const stats = [
   { label: 'SEO tips', value: '35+' },
   { label: 'Free audits', value: '5' },
 ]
+
+const landingUrlExamples = ['yoursite.com', 'example.com', 'yourdomainname.com']
 
 const steps = [
   'Enter any website URL',
@@ -199,10 +199,42 @@ function HeroAppPreview() {
 export default function Home() {
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [typedUrl, setTypedUrl] = useState('')
+  const [landingUrl, setLandingUrl] = useState('')
   const { theme, setTheme, resolvedTheme } = useTheme()
   const router = useRouter()
 
   useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    let exampleIndex = 0
+    let charIndex = 0
+    let isDeleting = false
+    let timeoutId: ReturnType<typeof setTimeout>
+
+    const tick = () => {
+      const currentExample = landingUrlExamples[exampleIndex]
+      setTypedUrl(currentExample.slice(0, charIndex))
+
+      if (!isDeleting && charIndex === currentExample.length) {
+        isDeleting = true
+        timeoutId = setTimeout(tick, 1200)
+        return
+      }
+
+      if (isDeleting && charIndex === 0) {
+        isDeleting = false
+        exampleIndex = (exampleIndex + 1) % landingUrlExamples.length
+      }
+
+      charIndex += isDeleting ? -1 : 1
+      timeoutId = setTimeout(tick, isDeleting ? 46 : 86)
+    }
+
+    timeoutId = setTimeout(tick, 280)
+
+    return () => clearTimeout(timeoutId)
+  }, [])
 
   useEffect(() => {
     const checkSession = async () => {
@@ -220,6 +252,11 @@ export default function Home() {
   }, [router])
 
   const isDark = mounted && (theme === 'dark' || resolvedTheme === 'dark')
+
+  const handleLandingAudit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    router.push('/login')
+  }
 
   if (checkingAuth) {
     return (
@@ -252,7 +289,11 @@ export default function Home() {
               className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-accent"
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
             >
-              {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <img
+                src={isDark ? '/theme-sun-icon.webp' : '/theme-moon-icon.webp'}
+                alt=""
+                className="h-5 w-5 object-contain"
+              />
             </button>
             <a href={donateUrl} target="_blank" rel="noreferrer" className="hidden sm:inline-flex">
               <Button variant="outline" className="h-9 gap-2 bg-background text-foreground hover:bg-accent hover:text-accent-foreground">
@@ -263,7 +304,7 @@ export default function Home() {
             <Link href="/login" className="hidden sm:inline-flex">
               <Button variant="ghost" className="h-9 text-foreground hover:bg-accent hover:text-accent-foreground">Sign In</Button>
             </Link>
-            <Link href="/register">
+            <Link href="/login">
               <Button className="h-9 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/85">Get Started</Button>
             </Link>
           </div>
@@ -295,17 +336,22 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-[26px] border border-blue-200 bg-white/90 p-3 shadow-xl shadow-blue-100/70 dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/25">
+            <form onSubmit={handleLandingAudit} className="rounded-[26px] border border-blue-200 bg-white/90 p-3 shadow-xl shadow-blue-100/70 dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/25">
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <div className="flex h-14 items-center gap-3 rounded-2xl border border-blue-100 bg-slate-50 px-4 text-slate-500 dark:border-white/10 dark:bg-[#0d1727] dark:text-slate-400">
+                <label htmlFor="landing-audit-url" className="flex h-14 items-center gap-3 rounded-2xl border border-blue-100 bg-slate-50 px-4 text-slate-500 transition-colors focus-within:border-blue-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-200/70 dark:border-white/10 dark:bg-[#0d1727] dark:text-slate-400 dark:focus-within:border-blue-300/40 dark:focus-within:bg-[#08111f] dark:focus-within:ring-blue-500/20">
                   <Globe2 className="h-5 w-5 shrink-0" />
-                  <span className="truncate">https://yourwebsite.com</span>
-                </div>
-                <Button asChild className="h-14 rounded-2xl bg-primary px-6 text-primary-foreground hover:bg-primary/85">
-                  <Link href="/register">
-                    Start Free Audit
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
+                  <input
+                    id="landing-audit-url"
+                    value={landingUrl}
+                    onChange={event => setLandingUrl(event.target.value)}
+                    placeholder={`https://${typedUrl || landingUrlExamples[0]}`}
+                    className="h-full min-w-0 flex-1 bg-transparent text-base font-medium text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  />
+                  {!landingUrl && <span className="h-5 w-px shrink-0 bg-blue-500 motion-safe:animate-pulse" aria-hidden="true" />}
+                </label>
+                <Button type="submit" className="h-14 rounded-2xl bg-primary px-6 text-primary-foreground hover:bg-primary/85">
+                  Start Free Audit
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 dark:border-white/10">
@@ -316,7 +362,7 @@ export default function Home() {
                   </div>
                 ))}
               </div>
-            </div>
+            </form>
 
             <div className="mx-auto grid max-w-xl grid-cols-3 gap-3 lg:mx-0">
               {stats.map(item => (

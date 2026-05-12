@@ -155,14 +155,14 @@ function DesktopRightSidebar({
       <button
         type="button"
         onClick={onToggleCollapsed}
-        className="absolute -left-3 top-8 z-10 flex h-6 w-6 items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+        className="absolute -left-2.5 top-8 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-blue-200 bg-[#eaf5ff] shadow-sm shadow-blue-200/60 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 dark:border-blue-400/20 dark:bg-[#0b1626] dark:shadow-black/30"
         aria-label={collapsed ? 'Expand desktop sidebar' : 'Collapse desktop sidebar'}
         title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         <img
-          src="/desktop-sidebar-arrow.png"
+          src="/desktop-sidebar-toggle-icon.webp"
           alt=""
-          className={`sidebar-toggle-swing h-6 w-6 object-contain opacity-95 drop-shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-100 ${
+          className={`sidebar-toggle-swing h-4 w-4 object-contain opacity-95 drop-shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-100 dark:invert ${
             collapsed ? 'rotate-0' : 'rotate-180'
           }`}
         />
@@ -317,9 +317,9 @@ function DesktopRightSidebar({
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-sm dark:bg-blue-400/15 dark:text-blue-200">
               <img
-                src="/sidebar-theme-toggle-icon.svg"
+                src={isDarkTheme ? '/theme-sun-icon.webp' : '/theme-moon-icon.webp'}
                 alt=""
-                className="h-5 w-5 object-contain dark:invert"
+                className="h-6 w-6 object-contain"
               />
             </span>
             <span className={collapsed ? 'sr-only' : ''}>{isDarkTheme ? 'Light mode' : 'Dark mode'}</span>

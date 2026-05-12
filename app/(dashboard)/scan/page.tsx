@@ -18,23 +18,24 @@ import { CompareTab } from '@/components/audit-tabs/CompareTab'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { CheckCircle2, Copy, Crown, Download, GitCompareArrows, Link2, Lock, RefreshCw, Search, Share2, TrendingUp } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Crown, Download, FileSpreadsheet, FileText, GitCompareArrows, Lock, RefreshCw, Search, Table2, TrendingUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import type { AuditResult, Plan } from '@/types'
 import { useScanProgress } from '@/hooks/useScanProgress'
-import { generatePDF } from '@/lib/pdfExport'
 import { getEffectivePlan, getPlanEntitlements } from '@/lib/planAccess'
 import { getPlanDisplay } from '@/lib/planDisplay'
 import { normalizeWebsiteUrl } from '@/lib/normalizeUrl'
 import { findLocalAuditByCacheId, findLocalAuditByUrl, saveLocalAudit } from '@/lib/localAuditArchive'
+import { downloadAuditCsv } from '@/lib/csvExport'
 import {
   clearActiveScan,
   clearStickyScanResult,
@@ -118,22 +119,6 @@ function AuditStatBar({ label, value, color, max }: { label: string; value: numb
   )
 }
 
-const openPdfBlob = (blob: Blob, domain: string) => {
-  const objectUrl = URL.createObjectURL(blob)
-  const opened = window.open(objectUrl, '_blank', 'noopener,noreferrer')
-
-  if (!opened) {
-    const link = document.createElement('a')
-    link.href = objectUrl
-    link.download = `${domain || 'audit'}-seo-report.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
-}
-
 export default function ScanPage() {
   const searchParams = useSearchParams()
   const initialUrl = searchParams.get('url') || ''
@@ -144,10 +129,7 @@ export default function ScanPage() {
   const [activeTab, setActiveTab] = useState(0)
   const [scanningUrl, setScanningUrl] = useState('')
   const [scanSessionId, setScanSessionId] = useState<string | null>(null)
-  const [pdfLoading, setPdfLoading] = useState(false)
-  const [shareLoading, setShareLoading] = useState(false)
-  const [shareModalOpen, setShareModalOpen] = useState(false)
-  const [shareUrl, setShareUrl] = useState('')
+  const [exportLoading, setExportLoading] = useState(false)
   const [userPlan, setUserPlan] = useState<Plan>('free')
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null)
   const autoStartedUrlRef = useRef('')
@@ -308,115 +290,19 @@ export default function ScanPage() {
     void handleScan(normalizedUrl)
   }, [initialUrl, loading, step])
 
-  const openStoredOrGeneratedPdf = async () => {
+  const exportCsvSpreadsheet = async () => {
     if (!audit) return
-    if (!entitlements.canExportPdf) {
-      showUpgradePrompt('PDF export')
-      return
-    }
-    setPdfLoading(true)
+    setExportLoading(true)
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession()
-      const token = sessionData.session?.access_token
-
-      if (token && audit.id) {
-        const cachedResponse = await fetch(`/api/pdf?auditId=${audit.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-
-        if (cachedResponse.ok) {
-          const cached = (await cachedResponse.json()) as { signedUrl?: string }
-          if (cached.signedUrl) {
-            window.open(cached.signedUrl, '_blank', 'noopener,noreferrer')
-            return
-          }
-        }
-      }
-
-      const blob = await generatePDF(audit)
-
-      if (token && audit.id) {
-        const formData = new FormData()
-        formData.append('auditId', audit.id)
-        formData.append('file', blob, 'report.pdf')
-
-        const uploadResponse = await fetch('/api/pdf', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        })
-        const uploaded = (await uploadResponse.json()) as { signedUrl?: string; error?: string }
-
-        if (uploadResponse.ok && uploaded.signedUrl) {
-          window.open(uploaded.signedUrl, '_blank', 'noopener,noreferrer')
-          return
-        }
-
-        console.warn('[pdf] Storage unavailable, downloading generated PDF locally:', uploaded.error)
-        toast.info('PDF storage is not ready yet, downloading the report directly.')
-        openPdfBlob(blob, audit.domain)
-        return
-      }
-
-      openPdfBlob(blob, audit.domain)
+      downloadAuditCsv(audit)
+      toast.success('Spreadsheet CSV downloaded')
     } catch (error) {
-      console.error('[pdf]', error)
-      toast.error(error instanceof Error ? error.message : 'Unable to export PDF')
+      console.error('[csv-export]', error)
+      toast.error(error instanceof Error ? error.message : 'Unable to export spreadsheet')
     } finally {
-      setPdfLoading(false)
+      setExportLoading(false)
     }
-  }
-
-  const createShareLink = async () => {
-    if (!audit) return
-
-    if (!audit.id) {
-      toast.error('Save the audit first before creating a public share link.')
-      return
-    }
-
-    setShareLoading(true)
-
-    try {
-      const { data: sessionData } = await supabase.auth.getSession()
-      const token = sessionData.session?.access_token
-
-      if (!token) {
-        toast.error('Please log in to share this report.')
-        return
-      }
-
-      const response = await fetch('/api/reports/share', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ auditId: audit.id, action: 'enable' }),
-      })
-
-      const result = (await response.json()) as { publicUrl?: string; error?: string }
-
-      if (!response.ok || !result.publicUrl) {
-        throw new Error(result.error || 'Unable to create public report link')
-      }
-
-      setShareUrl(result.publicUrl)
-      setShareModalOpen(true)
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast.error(error.message || 'Unable to share report')
-      }
-    } finally {
-      setShareLoading(false)
-    }
-  }
-
-  const copyShareLink = async () => {
-    if (!shareUrl) return
-    await navigator.clipboard.writeText(shareUrl)
-    toast.success('Public report link copied')
   }
 
   if (step === 'input') {
@@ -546,18 +432,47 @@ export default function ScanPage() {
             </div>
             <div className="min-w-0">
               <p className="font-bold">Want to fix these issues and track progress?</p>
-              <p className="text-sm text-muted-foreground">Create a shareable report, compare competitors, or export a PDF for your developer.</p>
+              <p className="text-sm text-muted-foreground">Export the audit as a spreadsheet, compare competitors, or hand clean data to your developer.</p>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 xl:mt-0 xl:flex xl:shrink-0">
-            <Button variant="outline" size="sm" onClick={openStoredOrGeneratedPdf} disabled={pdfLoading} className="w-full bg-white/80 dark:bg-slate-950/40 xl:w-auto">
-              <Download className="w-4 h-4 mr-2" />
-              {pdfLoading ? 'Preparing' : entitlements.canExportPdf ? 'PDF' : 'PDF Pro'}
-            </Button>
-            <Button size="sm" onClick={createShareLink} disabled={shareLoading} className="w-full bg-orange-500 text-white hover:bg-orange-600 xl:w-auto">
-              <Share2 className="w-4 h-4 mr-2" />
-              {shareLoading ? 'Creating' : 'Share'}
-            </Button>
+          <div className="mt-3 flex xl:mt-0 xl:shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" disabled={exportLoading} className="h-8 w-auto rounded-xl bg-white/80 px-3 text-xs font-bold dark:bg-slate-950/40">
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                  {exportLoading ? 'Preparing' : 'Export'}
+                  <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 rounded-2xl">
+                <DropdownMenuLabel>Download options</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={exportCsvSpreadsheet} className="cursor-pointer rounded-xl">
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  <span className="font-medium">Spreadsheet CSV</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportCsvSpreadsheet} className="cursor-pointer rounded-xl">
+                  <Table2 className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium">Full data CSV</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled className="rounded-xl">
+                  <FileText className="h-4 w-4" />
+                  <span>PDF report</span>
+                  <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-white/10">Soon</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled className="rounded-xl">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  <span>Excel XLSX</span>
+                  <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-white/10">Soon</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem disabled className="rounded-xl">
+                  <Download className="h-4 w-4" />
+                  <span>Google Sheets</span>
+                  <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-white/10">Soon</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -606,68 +521,6 @@ export default function ScanPage() {
       <div className="min-w-0 px-4 pb-4 lg:mx-auto lg:max-w-[1160px] lg:px-0 lg:pb-10 [&_*]:min-w-0 [&_p]:break-words [&_h2]:break-words [&_h3]:break-words [&_h4]:break-words [&_li]:break-words">
         {renderTab()}
       </div>
-
-      <Dialog open={shareModalOpen} onOpenChange={setShareModalOpen}>
-        <DialogContent className="max-w-[calc(100vw-32px)] rounded-[28px] border-blue-100 p-0 sm:max-w-md dark:border-white/10">
-          <div className="overflow-hidden rounded-[28px]">
-            <DialogHeader className="border-b border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 text-left dark:border-white/10 dark:from-blue-500/10 dark:to-slate-950">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
-                <Share2 className="h-5 w-5" />
-              </div>
-              <DialogTitle className="text-xl font-black">Share SEO report</DialogTitle>
-              <DialogDescription>
-                Anyone with this public link can view the overview report without logging in.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4 p-5">
-              <div className="rounded-2xl border border-blue-100 bg-[#f8fbff] p-3 dark:border-white/10 dark:bg-white/[0.04]">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">Public report link</p>
-                <p className="mt-2 break-all text-sm text-slate-700 dark:text-slate-200">{shareUrl}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Button onClick={copyShareLink} className="rounded-2xl">
-                  <Copy className="h-4 w-4" />
-                  Copy link
-                </Button>
-                <Button asChild variant="outline" className="rounded-2xl">
-                  <a href={`https://wa.me/?text=${encodeURIComponent(`${audit.domain} SEO report: ${shareUrl}`)}`} target="_blank" rel="noreferrer">
-                    WhatsApp
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="rounded-2xl">
-                  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noreferrer">
-                    Facebook
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="rounded-2xl">
-                  <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noreferrer">
-                    LinkedIn
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="rounded-2xl">
-                  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`${audit.domain} SEO report`)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noreferrer">
-                    X
-                  </a>
-                </Button>
-                <Button asChild variant="outline" className="rounded-2xl">
-                  <a href={`mailto:?subject=${encodeURIComponent(`${audit.domain} SEO report`)}&body=${encodeURIComponent(`Here is the SEO report: ${shareUrl}`)}`}>
-                    Email
-                  </a>
-                </Button>
-              </div>
-
-              <Button asChild variant="ghost" className="w-full rounded-2xl">
-                <a href={shareUrl} target="_blank" rel="noreferrer">
-                  <Link2 className="h-4 w-4" />
-                  Open public report
-                </a>
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

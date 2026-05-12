@@ -204,9 +204,9 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
                         transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                       >
                         <img
-                          src="/sidebar-theme-toggle-icon.svg"
+                          src={isDarkTheme ? '/theme-sun-icon.webp' : '/theme-moon-icon.webp'}
                           alt="Theme toggle icon"
-                          className="h-5 w-5 object-contain dark:brightness-0 dark:saturate-100 dark:[filter:invert(24%)_sepia(91%)_saturate(2250%)_hue-rotate(212deg)_brightness(88%)_contrast(94%)]"
+                          className="h-6 w-6 object-contain"
                         />
                       </motion.span>
                     </span>
