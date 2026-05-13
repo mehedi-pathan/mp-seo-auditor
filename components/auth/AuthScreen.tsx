@@ -22,6 +22,7 @@ import { supabase } from '@/lib/supabase/client'
 import { FacebookIcon } from '@/components/auth/FacebookIcon'
 import { GitHubIcon } from '@/components/auth/GitHubIcon'
 import { GoogleIcon } from '@/components/auth/GoogleIcon'
+import { LoadingMark } from '@/components/loading/RouteLoading'
 
 type AuthMode = 'login' | 'register'
 
@@ -270,7 +271,7 @@ export function AuthScreen({ initialMode }: AuthScreenProps) {
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/25 border-t-primary" />
+        <LoadingMark label="Checking your session" />
       </div>
     )
   }
@@ -319,16 +320,14 @@ export function AuthScreen({ initialMode }: AuthScreenProps) {
               <span className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-amber-400 shadow-lg shadow-amber-200/60" />
             </motion.div>
             <div className="absolute left-1/2 top-1/2 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-blue-100 bg-white/70 shadow-xl shadow-blue-100/60 backdrop-blur dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/20">
-              <img src="/mp-seo-logo.jpeg" alt="" className="h-10 w-10 rounded-2xl object-cover" />
+              <img src="/mp-seo-logo-icon-blue.svg" alt="" className="h-10 w-10 rounded-2xl object-contain dark:hidden" />
+              <img src="/mp-seo-logo-icon-dark.png" alt="" className="hidden h-10 w-10 rounded-2xl object-contain dark:block" />
             </div>
           </div>
 
-          <Link href="/" className="relative z-10 flex items-center gap-4">
-            <img src="/mp-seo-logo.jpeg" alt="MP SEO Auditor logo" className="h-12 w-12 rounded-2xl object-cover ring-1 ring-blue-100" />
-            <div>
-              <p className="text-xl font-black tracking-[0.18em]">MP SEO</p>
-              <p className="text-xs font-black tracking-[0.34em] text-orange-500">AUDITOR</p>
-            </div>
+          <Link href="/" className="relative z-10 inline-flex w-fit items-center rounded-3xl bg-white px-4 py-2 shadow-sm ring-1 ring-blue-100 dark:bg-white/[0.04] dark:ring-white/10">
+            <img src="/mp-seo-logo-full.svg" alt="MP SEO Auditor full brand logo" className="h-12 w-auto max-w-[220px] object-contain dark:hidden" />
+            <img src="/mp-seo-logo-full-dark.png" alt="MP SEO Auditor full brand logo" className="hidden h-12 w-auto max-w-[220px] object-contain dark:block" />
           </Link>
 
           <div className="relative z-10 mt-14 max-w-xl">
@@ -385,7 +384,10 @@ export function AuthScreen({ initialMode }: AuthScreenProps) {
               <Link href="/" className="grid h-12 w-12 place-items-center rounded-2xl border border-blue-100 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
                 <img src="/home.svg" alt="Back to home" className="h-5 w-5 opacity-80 dark:invert" />
               </Link>
-              <img src="/mp-seo-logo.jpeg" alt="MP SEO Auditor logo" className="h-14 w-14 rounded-2xl object-cover ring-1 ring-blue-100 dark:ring-white/10" />
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white p-1 shadow-sm ring-1 ring-blue-100 dark:bg-white/[0.04] dark:ring-white/10">
+                <img src="/mp-seo-logo-icon-blue.svg" alt="MP SEO Auditor logo" className="h-full w-full object-contain dark:hidden" />
+                <img src="/mp-seo-logo-icon-dark.png" alt="MP SEO Auditor logo" className="hidden h-full w-full object-contain dark:block" />
+              </span>
               <button
                 type="button"
                 aria-expanded={showPrivacyNote}

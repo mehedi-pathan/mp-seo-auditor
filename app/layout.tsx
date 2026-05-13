@@ -73,6 +73,10 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
+        url: '/mp-seo-logo-icon-blue.svg',
+        type: 'image/svg+xml',
+      },
+      {
         url: '/favicon-32x32.png',
         sizes: '32x32',
         type: 'image/png',

@@ -103,8 +103,9 @@ export default async function PublicReportPage({ params }: PublicReportPageProps
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[28px] border border-blue-100 bg-white/80 px-4 py-3 shadow-lg shadow-blue-100/50 backdrop-blur dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/20">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm dark:border-white/10">
-              <img src="/mp-seo-logo.jpeg" alt="MP SEO Auditor brand logo" className="h-full w-full object-contain" />
+            <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+              <img src="/mp-seo-logo-icon-blue.svg" alt="MP SEO Auditor brand logo" className="h-full w-full object-contain dark:hidden" />
+              <img src="/mp-seo-logo-icon-dark.png" alt="MP SEO Auditor brand logo" className="hidden h-full w-full object-contain dark:block" />
             </span>
             <span>
               <span className="block text-base font-black">MP SEO Auditor</span>
@@ -232,7 +233,7 @@ export default async function PublicReportPage({ params }: PublicReportPageProps
             <div className="rounded-[30px] border border-blue-100 bg-white/88 p-5 shadow-xl shadow-blue-100/50 dark:border-white/10 dark:bg-white/[0.06] dark:shadow-black/20">
               <h2 className="text-xl font-black">Need the full report?</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                This public page shows the client-safe overview. The audit owner can access full tabs, PDF exports, history, and private developer notes inside MP SEO Auditor.
+                This public page shows the client-safe overview. The audit owner can access full tabs, CSV exports, history, and private developer notes inside MP SEO Auditor.
               </p>
               <Link
                 href="/register"

@@ -6,6 +6,7 @@ export interface PlanEntitlements {
   plan: Plan
   auditLimit: number | null
   canViewFullReport: boolean
+  canViewBusinessInsights: boolean
   canExportPdf: boolean
   canCompare: boolean
   canUseTrends: boolean
@@ -17,6 +18,7 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     plan: 'free',
     auditLimit: 5,
     canViewFullReport: false,
+    canViewBusinessInsights: false,
     canExportPdf: false,
     canCompare: false,
     canUseTrends: false,
@@ -26,6 +28,7 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     plan: 'pro',
     auditLimit: 100,
     canViewFullReport: true,
+    canViewBusinessInsights: false,
     canExportPdf: true,
     canCompare: true,
     canUseTrends: true,
@@ -35,6 +38,7 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     plan: 'business',
     auditLimit: null,
     canViewFullReport: true,
+    canViewBusinessInsights: true,
     canExportPdf: true,
     canCompare: true,
     canUseTrends: true,
@@ -44,6 +48,7 @@ const entitlements: Record<Plan, PlanEntitlements> = {
     plan: 'agency',
     auditLimit: null,
     canViewFullReport: true,
+    canViewBusinessInsights: true,
     canExportPdf: true,
     canCompare: true,
     canUseTrends: true,

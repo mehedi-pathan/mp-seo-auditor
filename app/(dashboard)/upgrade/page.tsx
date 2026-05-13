@@ -42,7 +42,7 @@ const plans: UpgradePlan[] = [
       { text: 'SEO + Performance scores', included: true },
       { text: 'Scan history (10 recent)', included: true },
       { text: 'Tips library', included: true },
-      { text: 'PDF export', included: false },
+      { text: 'CSV export', included: false },
       { text: 'Competitor comparison', included: false },
       { text: 'Backlink monitor', included: false },
       { text: 'Trend dashboard', included: false },
@@ -60,7 +60,7 @@ const plans: UpgradePlan[] = [
       { text: '100 site audits per month', included: true },
       { text: 'Full 7-tab deep audit', included: true },
       { text: 'AI executive summary', included: true },
-      { text: 'PDF export (branded)', included: true },
+      { text: 'Spreadsheet CSV export', included: true },
       { text: 'Competitor comparison', included: true },
       { text: 'Backlink monitor', included: true },
       { text: 'Full trend dashboard', included: true },
@@ -79,8 +79,8 @@ const plans: UpgradePlan[] = [
     features: [
       { text: 'Everything in Pro', included: true },
       { text: 'Unlimited SEO audits', included: true },
-      { text: 'Unlimited keyword tracking', included: true },
-      { text: 'White-label PDF reports', included: true },
+      { text: 'Unlimited domain tracking', included: true },
+      { text: 'Business diagnostics', included: true },
       { text: 'API access', included: true },
       { text: '5 team members', included: true },
       { text: 'Bulk URL scanning', included: true },
@@ -256,7 +256,7 @@ export default function UpgradePage() {
       setPlanStartedAt(data.planStartedAt || new Date().toISOString())
       setPlanExpiresAt(data.planExpiresAt || null)
       setCouponCode('')
-      window.dispatchEvent(new CustomEvent('plan-updated', { detail: { plan: data.plan } }))
+      window.dispatchEvent(new CustomEvent('plan-updated', { detail: { plan: data.plan, planExpiresAt: data.planExpiresAt || null } }))
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Coupon could not be redeemed')
     } finally {

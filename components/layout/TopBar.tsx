@@ -22,11 +22,10 @@ export function TopBar({ plan = 'free', onMenuOpen }: TopBarProps) {
     <div className="sticky top-0 z-20 border-b border-border bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-sm dark:bg-[#08111f]/95">
       <div className="grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
-          <img
-            src="/mp-seo-logo.jpeg"
-            alt="MP SEO Auditor logo"
-            className="h-10 w-10 rounded-xl object-cover ring-1 ring-border"
-          />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white p-1 ring-1 ring-border dark:bg-white/[0.04]">
+            <img src="/mp-seo-logo-icon-blue.svg" alt="MP SEO Auditor logo" className="h-full w-full object-contain dark:hidden" />
+            <img src="/mp-seo-logo-icon-dark.png" alt="MP SEO Auditor logo" className="hidden h-full w-full object-contain dark:block" />
+          </span>
           <div className="min-w-0">
             <h1 className="truncate text-sm font-bold text-foreground">SEO Auditor</h1>
             <motion.p className="truncate text-xs text-muted-foreground">

@@ -141,6 +141,12 @@ export interface PageSpeedMetrics {
   speedIndex: string | null
 }
 
+export interface PageSpeedSnapshot {
+  data: string
+  width?: number
+  height?: number
+}
+
 export interface PageSpeedAnalysis {
   strategy: 'mobile' | 'desktop'
   scores: {
@@ -154,8 +160,14 @@ export interface PageSpeedAnalysis {
   diagnostics: PageSpeedAudit[]
   passedAudits: number
   fetchedAt: string
+  snapshot?: PageSpeedSnapshot
   source: 'pagespeed-insights'
   error?: string
+}
+
+export interface PageSpeedDeviceAnalysis {
+  mobile?: PageSpeedAnalysis | null
+  desktop?: PageSpeedAnalysis | null
 }
 
 export interface AuditResult {
@@ -174,6 +186,7 @@ export interface AuditResult {
   social: SocialAnalysis
   links: LinkAnalysis
   pageSpeed?: PageSpeedAnalysis
+  pageSpeedDevices?: PageSpeedDeviceAnalysis
   aiSummary: string
   topFixes: Fix[]
   quickWins: string[]

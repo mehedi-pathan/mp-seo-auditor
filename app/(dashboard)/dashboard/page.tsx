@@ -16,9 +16,7 @@ import {
   Link2,
   Search,
   ShieldCheck,
-  Star,
   Target,
-  Trophy,
   TrendingUp,
   Zap,
 } from 'lucide-react'
@@ -226,10 +224,10 @@ export default function DashboardPage() {
   }
 
   const statCards = [
-    { label: 'Total Scans', value: stats.total, icon: Activity, color: 'blue' as const, iconClass: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300' },
-    { label: 'Avg SEO Score', value: stats.avgSeo ?? '-', icon: Star, color: 'green' as const, iconClass: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' },
-    { label: 'Best Score', value: stats.bestScore ?? '-', icon: Trophy, color: 'violet' as const, iconClass: 'bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300' },
-    { label: 'Domains Tracked', value: stats.domains, icon: Globe2, color: 'orange' as const, iconClass: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300' },
+    { label: 'Total Scans', value: stats.total, iconSrc: '/dashboard-total-scans-icon.png', color: 'blue' as const, iconClass: 'bg-blue-100/80 dark:bg-blue-500/15' },
+    { label: 'Avg SEO Score', value: stats.avgSeo ?? '-', iconSrc: '/dashboard-average-score-icon.png', color: 'green' as const, iconClass: 'bg-emerald-100/80 dark:bg-emerald-500/15' },
+    { label: 'Best Score', value: stats.bestScore ?? '-', iconSrc: '/dashboard-best-score-icon.png', color: 'violet' as const, iconClass: 'bg-violet-100/80 dark:bg-violet-500/15' },
+    { label: 'Domains Tracked', value: stats.domains, iconSrc: '/dashboard-domains-icon.png', color: 'orange' as const, iconClass: 'bg-orange-100/80 dark:bg-orange-500/15' },
   ]
 
   return (
@@ -311,9 +309,7 @@ export default function DashboardPage() {
         transition={{ delay: 0.05 }}
         className="grid grid-cols-2 gap-3"
       >
-        {statCards.map(card => {
-          const Icon = card.icon
-          return (
+        {statCards.map(card => (
             <Card key={card.label} className="overflow-hidden rounded-[22px] border-slate-200 bg-white p-4 shadow-md shadow-slate-200/60 dark:border-white/10 dark:bg-[#0d1727] dark:shadow-black/20">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -323,15 +319,14 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${card.iconClass}`}>
-                  <Icon className="h-5 w-5" />
+                  <img src={card.iconSrc} alt="" className="h-6 w-6 object-contain" />
                 </div>
               </div>
               <div className="mt-3 flex justify-end opacity-80">
                 <MiniTrend color={card.color} />
               </div>
             </Card>
-          )
-        })}
+        ))}
       </motion.section>
 
       <motion.section
@@ -610,14 +605,12 @@ export default function DashboardPage() {
                 <Activity className="h-8 w-8 text-blue-500" />
               </div>
               <div className="mt-5 grid grid-cols-2 gap-3">
-                {statCards.map(card => {
-                  const Icon = card.icon
-                  return (
+                {statCards.map(card => (
                     <div key={card.label} className="rounded-3xl border border-slate-100 bg-[#f8fbff] p-4 dark:border-white/10 dark:bg-[#0d1727]">
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-xs font-bold leading-tight text-slate-500 dark:text-slate-400">{card.label}</p>
                         <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl ${card.iconClass}`}>
-                          <Icon className="h-[18px] w-[18px]" />
+                          <img src={card.iconSrc} alt="" className="h-5 w-5 object-contain" />
                         </span>
                       </div>
                       <p className="mt-2 text-3xl font-black text-slate-950 dark:text-white">{isLoading ? '...' : card.value}</p>
@@ -625,8 +618,7 @@ export default function DashboardPage() {
                         <MiniTrend color={card.color} />
                       </div>
                     </div>
-                  )
-                })}
+                ))}
               </div>
             </Card>
 

@@ -13,7 +13,7 @@ export const planDisplay = {
   pro: {
     label: 'Pro',
     title: 'Pro package user',
-    description: '100 audits per month with PDF reports, trends, competitor comparison, and backlink tools.',
+    description: '100 audits per month with CSV exports, trends, competitor comparison, and backlink tools.',
     icon: Sparkles,
     badgeClass: 'border-sky-200 bg-sky-100 text-sky-800 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200',
     cardClass: 'border-sky-200 bg-sky-50/70 dark:border-sky-900 dark:bg-sky-950/25',

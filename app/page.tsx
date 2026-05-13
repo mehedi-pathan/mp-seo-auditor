@@ -19,6 +19,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { LoadingMark } from '@/components/loading/RouteLoading'
 import type { LucideIcon } from 'lucide-react'
 
 const donateUrl = 'https://wa.me/8801622839616?text=I%20want%20to%20donate%20to%20support%20MP%20SEO%20Auditor'
@@ -116,7 +117,7 @@ const pricingPlans: Array<{
       '100 site audits per month',
       'Full 7-tab deep audit report',
       'AI executive summary',
-      'PDF export with branding',
+      'Spreadsheet CSV export',
       'Competitor comparison',
       'Backlink monitor',
       'Competitor comparison and backlink tools',
@@ -133,8 +134,8 @@ const pricingPlans: Array<{
     highlighted: false,
     features: [
       'Unlimited SEO audits',
-      'Unlimited keyword tracking',
-      'White-label PDF reports',
+      'Unlimited domain tracking',
+      'Business diagnostics',
       'API access',
       '5 team members',
       'Bulk URL scanning',
@@ -261,25 +262,26 @@ export default function Home() {
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary/25 border-t-primary" />
+        <LoadingMark label="Opening MP SEO Auditor" />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_20%_10%,rgba(138,199,255,0.22),transparent_30%),linear-gradient(135deg,#f8fbff_0%,#f6f8fc_52%,#eef5ff_100%)] text-foreground dark:bg-[radial-gradient(circle_at_18%_8%,rgba(96,165,250,0.18),transparent_28%),radial-gradient(circle_at_85%_12%,rgba(139,92,246,0.14),transparent_26%),linear-gradient(135deg,#08111f_0%,#0b1324_56%,#10172d_100%)]">
-      <nav className="fixed inset-x-0 top-0 z-50 border-b border-border/80 bg-background/80 backdrop-blur-xl dark:bg-[#08111f]/82">
+      <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-100/80 bg-white/82 backdrop-blur-xl dark:border-blue-300/10 dark:bg-[linear-gradient(135deg,rgba(7,17,31,0.94),rgba(12,28,50,0.9))]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <Link href="/" className="flex min-w-0 items-center gap-3">
             <img
-              src="/mp-seo-logo.jpeg"
-              alt="MP SEO Auditor logo"
-              className="h-10 w-10 rounded-2xl object-cover ring-1 ring-border"
+              src="/mp-seo-logo-full.svg"
+              alt="MP SEO Auditor brand logo"
+              className="h-9 w-auto max-w-[188px] object-contain dark:hidden"
             />
-            <div className="min-w-0">
-              <p className="truncate text-base font-black text-foreground">MP SEO Auditor</p>
-              <p className="truncate text-xs text-muted-foreground">Mehedi Pathan</p>
-            </div>
+            <img
+              src="/mp-seo-logo-full-dark.png"
+              alt="MP SEO Auditor brand logo"
+              className="hidden h-9 w-auto max-w-[188px] object-contain dark:block"
+            />
           </Link>
 
           <div className="flex items-center gap-2">

@@ -1,12 +1,14 @@
 'use client'
 
-import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Lock, Monitor, Smartphone, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import type { PageSpeedAnalysis, TechnicalChecklist } from '@/types'
+import type { PageSpeedAnalysis, PageSpeedDeviceAnalysis, TechnicalChecklist } from '@/types'
 
 interface TechnicalTabProps {
   technical: TechnicalChecklist
   pageSpeed?: PageSpeedAnalysis
+  pageSpeedDevices?: PageSpeedDeviceAnalysis
+  showAdvancedPageSpeed?: boolean
 }
 
 const statusIcons = {
@@ -27,70 +29,126 @@ const formatBytes = (bytes?: number) => {
   return `${Math.round(bytes / 1024)} KB`
 }
 
-export function TechnicalTab({ technical, pageSpeed }: TechnicalTabProps) {
+export function TechnicalTab({ technical, pageSpeed, pageSpeedDevices, showAdvancedPageSpeed = false }: TechnicalTabProps) {
   const passCount = technical.checks.filter(c => c.status === 'pass').length
   const totalCount = technical.checks.length
+  const deviceRuns = [
+    pageSpeedDevices?.mobile || (pageSpeed?.strategy === 'mobile' ? pageSpeed : null),
+    pageSpeedDevices?.desktop || (pageSpeed?.strategy === 'desktop' ? pageSpeed : null),
+  ].filter((item): item is PageSpeedAnalysis => Boolean(item))
+  const primaryPageSpeed = deviceRuns.find(item => !item.error) || pageSpeed
 
   return (
     <div className="space-y-6">
-      {pageSpeed && !pageSpeed.error && (
+      {deviceRuns.length > 0 && (
         <div className="space-y-4">
           <div>
             <h3 className="font-semibold">Google PageSpeed Insights</h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Mobile Lighthouse crawl from {new Date(pageSpeed.fetchedAt).toLocaleString()}
+              Mobile and desktop Lighthouse crawls from {primaryPageSpeed ? new Date(primaryPageSpeed.fetchedAt).toLocaleString() : 'PageSpeed Insights'}.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              ['Performance', pageSpeed.scores.performance],
-              ['SEO', pageSpeed.scores.seo],
-              ['Accessibility', pageSpeed.scores.accessibility],
-              ['Best Practices', pageSpeed.scores.bestPractices],
-            ].map(([label, score]) => (
-              <div key={label} className="rounded-lg border border-border p-3">
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className={`text-2xl font-bold ${scoreTone(Number(score))}`}>{score}</p>
-              </div>
-            ))}
+          <div className="grid gap-3 lg:grid-cols-2">
+            {deviceRuns.map(run => {
+              const DeviceIcon = run.strategy === 'mobile' ? Smartphone : Monitor
+
+              return (
+                <div key={run.strategy} className="rounded-2xl border border-border bg-card/70 p-3">
+                  <div className="mb-3 flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-200">
+                        <DeviceIcon className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-black capitalize">{run.strategy}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">{new Date(run.fetchedAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    {run.error && <Badge variant="outline" className="shrink-0 text-amber-600">Limited</Badge>}
+                  </div>
+
+                  {run.error ? (
+                    <p className="text-xs leading-5 text-muted-foreground">{run.error}</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          ['Performance', run.scores.performance],
+                          ['SEO', run.scores.seo],
+                          ...(showAdvancedPageSpeed ? [
+                            ['Accessibility', run.scores.accessibility],
+                            ['Best Practices', run.scores.bestPractices],
+                          ] as Array<[string, number]> : []),
+                        ].map(([label, score]) => (
+                          <div key={label} className="rounded-xl border border-border p-3">
+                            <p className="text-xs text-muted-foreground">{label}</p>
+                            <p className={`text-2xl font-bold ${scoreTone(Number(score))}`}>{score}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {run.snapshot?.data && (
+                        <div className="mt-3 overflow-hidden rounded-xl border border-border bg-muted/40">
+                          <img
+                            src={run.snapshot.data}
+                            alt={`${run.strategy} PageSpeed visual snapshot`}
+                            className="max-h-56 w-full object-contain"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )
+            })}
           </div>
 
+          {!showAdvancedPageSpeed && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+              <div className="flex items-start gap-2">
+                <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+                <p>Pro and Business users can see Core Web Vitals, accessibility, best-practice details, developer opportunities, and diagnostics for both mobile and desktop crawls.</p>
+              </div>
+            </div>
+          )}
+
+          {showAdvancedPageSpeed && primaryPageSpeed && !primaryPageSpeed.error && (
           <div className="rounded-lg border border-border p-3">
             <h4 className="mb-3 text-sm font-semibold">Core Metrics</h4>
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <p className="text-muted-foreground">FCP</p>
-                <p className="font-medium">{pageSpeed.metrics.firstContentfulPaint || 'n/a'}</p>
+                <p className="font-medium">{primaryPageSpeed.metrics.firstContentfulPaint || 'n/a'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">LCP</p>
-                <p className="font-medium">{pageSpeed.metrics.largestContentfulPaint || 'n/a'}</p>
+                <p className="font-medium">{primaryPageSpeed.metrics.largestContentfulPaint || 'n/a'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">TBT</p>
-                <p className="font-medium">{pageSpeed.metrics.totalBlockingTime || 'n/a'}</p>
+                <p className="font-medium">{primaryPageSpeed.metrics.totalBlockingTime || 'n/a'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">CLS</p>
-                <p className="font-medium">{pageSpeed.metrics.cumulativeLayoutShift || 'n/a'}</p>
+                <p className="font-medium">{primaryPageSpeed.metrics.cumulativeLayoutShift || 'n/a'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Speed Index</p>
-                <p className="font-medium">{pageSpeed.metrics.speedIndex || 'n/a'}</p>
+                <p className="font-medium">{primaryPageSpeed.metrics.speedIndex || 'n/a'}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Passed audits</p>
-                <p className="font-medium">{pageSpeed.passedAudits}</p>
+                <p className="font-medium">{primaryPageSpeed.passedAudits}</p>
               </div>
             </div>
           </div>
+          )}
 
-          {pageSpeed.opportunities.length > 0 && (
+          {showAdvancedPageSpeed && primaryPageSpeed && primaryPageSpeed.opportunities.length > 0 && (
             <div>
               <h4 className="mb-2 text-sm font-semibold">Developer Opportunities</h4>
               <div className="space-y-2">
-                {pageSpeed.opportunities.slice(0, 5).map(item => (
+                {primaryPageSpeed.opportunities.slice(0, 5).map(item => (
                   <div key={item.id} className="rounded-lg border border-border p-3">
                     <div className="mb-1 flex flex-wrap items-start justify-between gap-2">
                       <p className="min-w-0 flex-1 break-words text-sm font-medium">{item.title}</p>
@@ -108,11 +166,11 @@ export function TechnicalTab({ technical, pageSpeed }: TechnicalTabProps) {
             </div>
           )}
 
-          {pageSpeed.diagnostics.length > 0 && (
+          {showAdvancedPageSpeed && primaryPageSpeed && primaryPageSpeed.diagnostics.length > 0 && (
             <div>
               <h4 className="mb-2 text-sm font-semibold">SEO & Crawl Diagnostics</h4>
               <div className="space-y-2">
-                {pageSpeed.diagnostics.slice(0, 5).map(item => (
+                {primaryPageSpeed.diagnostics.slice(0, 5).map(item => (
                   <div key={item.id} className="rounded-lg border border-border p-3">
                     <p className="break-words text-sm font-medium">{item.title}</p>
                     <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">{item.description}</p>

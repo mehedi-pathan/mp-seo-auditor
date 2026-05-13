@@ -2,9 +2,9 @@
 
 <img src="./docs/images/seo-share-preview.png" alt="MP SEO Auditor landing page social preview showing the website audit hero and mobile app screens" width="760" />
 
-MP SEO Auditor is a mobile-focused SEO audit app built to help website owners, developers, and agencies understand what is holding a site back in Google search. It scans a URL, checks technical SEO signals, pulls Google PageSpeed Insights data, generates AI-readable recommendations, and saves every audit so users can track improvement over time.
+MP SEO Auditor is a mobile-first SEO audit app built to help website owners, developers, and agencies understand what is holding a site back in Google search. It scans a URL, checks technical SEO signals, pulls dual-device Google PageSpeed Insights data, generates AI-readable recommendations, and keeps recent audits available so users can track improvement over time.
 
-The product is designed for practical SEO work: scan a website, understand the problems, compare with competitors, export a report, and turn the findings into developer-friendly fixes.
+The product is designed for practical SEO work: scan a website, understand the problems, compare with competitors, export clean spreadsheet data, and turn the findings into developer-friendly fixes.
 
 ## Preview
 
@@ -31,19 +31,22 @@ MP SEO Auditor gives users a complete website audit with clear, human-readable r
 Core capabilities include:
 
 - Website SEO scans for metadata, headings, content, technical checks, social tags, links, accessibility, and performance.
-- Google PageSpeed Insights integration for Lighthouse performance, accessibility, SEO, best practices, core metrics, opportunities, and diagnostics.
+- Google PageSpeed Insights integration for mobile and desktop Lighthouse performance, accessibility, SEO, best practices, core metrics, opportunities, screenshots, and diagnostics.
 - AI executive summaries that explain the audit in plain language.
 - Audit history stored per user in Supabase.
+- Browser archive for quickly reopening recent local scan results without rescanning.
 - Trends view for tracking repeated scans of the same domain.
 - Competitor comparison for side-by-side SEO improvement planning.
-- Keyword research and backlink analysis pages.
-- PDF report generation and cached report storage support.
+- Backlink analysis and technical SEO lab tools.
+- Spreadsheet CSV export with category-based audit rows for developers and clients.
 - Free, Pro, and Business plan access controls.
+- Business-only advanced PageSpeed diagnostics and visual snapshots.
 - Manual payment flow using bKash and Nagad.
 - Coupon upgrade support.
 - Google authentication through Supabase Auth.
 - Forgot password email template branded for MP SEO Auditor.
-- Light and dark mode UI built around a mobile app-style experience.
+- New MP SEO Auditor brand logo system for light and dark mode.
+- Light and dark mode UI built around a mobile app-style experience with a responsive desktop workspace.
 
 ## Tech Stack
 
@@ -53,11 +56,11 @@ Core capabilities include:
 - **State:** Zustand
 - **Auth and Database:** Supabase Auth, Postgres, RLS policies
 - **Realtime:** Supabase Realtime scan progress
-- **Storage:** Supabase Storage for generated audit PDFs
+- **Storage:** Supabase Storage support for report assets
 - **Edge Runtime:** Supabase Edge Functions for scan, AI summary, backlink, and semantic search workflows
 - **AI:** Anthropic Claude API
 - **SEO Data:** Google PageSpeed Insights API
-- **PDF:** jsPDF
+- **Exports:** Spreadsheet CSV export, report export menu
 - **Charts:** Recharts
 - **Payments:** Manual bKash/Nagad upgrade flow
 
@@ -70,7 +73,7 @@ app/
   api/                    Next.js API routes
 components/               Shared UI components
 hooks/                    Client hooks, realtime and semantic search
-lib/                      Scan engine, AI, PageSpeed, PDF, plan helpers
+lib/                      Scan engine, AI, PageSpeed, exports, plan helpers
 public/                   Logos, icons, screenshots, app images
 scripts/                  Supabase SQL setup and utility scripts
 store/                    Zustand stores
@@ -92,7 +95,6 @@ types/                    Shared TypeScript types
 | `/history` | Saved audit history and semantic search |
 | `/trends` | Domain scan history and SEO improvement trends |
 | `/backlinks` | Backlink analysis page |
-| `/keywords` | Keyword research and keyword tracking page |
 | `/tips` | SEO tips library with categories, search, filters, and expandable tips |
 | `/profile` | User profile, profile image, account information, and plan details |
 | `/upgrade` | Subscription plans, manual payment, coupon upgrade, and billing interval controls |
@@ -104,8 +106,8 @@ The app currently supports three main user-facing plans:
 | Plan | Audit Limit | Best For | Access |
 | --- | ---: | --- | --- |
 | Free | 5 audits per month | New users testing the app | Basic audit, limited report data, scan history |
-| Pro | 100 audits per month | Site owners and developers | Full reports, PDF export, trends, backlinks, keywords, compare |
-| Business | Unlimited audits | Businesses and agencies | Everything in Pro plus unlimited audit usage |
+| Pro | 100 audits per month | Site owners and developers | Full report tabs, CSV export, trends, backlinks, compare |
+| Business | Unlimited audits | Businesses and agencies | Everything in Pro plus advanced dual-device diagnostics, screenshots, and unlimited audit usage |
 
 Plan behavior is handled in `lib/planAccess.ts`. Subscription timestamps are supported through `plan_started_at`, `plan_expires_at`, and `billing_interval` columns so monthly and yearly packages can be managed over time.
 
@@ -153,7 +155,7 @@ pnpm dev
 Open:
 
 ```text
-localhost
+http://localhost:3000
 ```
 
 ### 4. Build For Production
@@ -180,7 +182,6 @@ Run the SQL files in `scripts/` inside the Supabase SQL Editor in order:
 ```text
 001_create_audits_table.sql
 002_create_profiles_table.sql
-003_create_keywords_table.sql
 004_fix_auth_profile_trigger.sql
 005_create_manual_payments_table.sql
 006_approve_manual_payment.sql
@@ -193,10 +194,9 @@ The SQL setup includes:
 
 - `profiles` table for user plan, credits, profile image, and billing timestamps.
 - `audits` table for saved scan results.
-- `keywords` table for keyword tracking.
 - `manual_payments` table for bKash/Nagad upgrade requests.
 - `scan_sessions` table with realtime enabled.
-- `audit-reports` private storage bucket for generated PDFs.
+- `audit-reports` private storage bucket support for generated report assets.
 - `pgvector` extension and `match_audits` function for semantic audit search.
 - RLS policies so users can only access their own data.
 
@@ -279,12 +279,13 @@ At a high level, a scan works like this:
 1. User enters a website URL.
 2. The app validates the URL and starts a scan session.
 3. The scan engine fetches the page and parses SEO signals.
-4. PageSpeed Insights returns Lighthouse data.
+4. PageSpeed Insights returns mobile and desktop Lighthouse data.
 5. Claude generates a readable executive summary, top fixes, and quick wins.
 6. The result is saved to Supabase.
 7. Realtime progress updates the scanning UI.
-8. PDF export can generate and store a report for future signed URL access.
+8. Recent scan results are archived locally in the browser for fast reopening.
 9. Embeddings can be generated asynchronously for semantic history search.
+10. CSV export turns the audit into a structured spreadsheet with overview, headings, metadata, content, technical, social, links, and PageSpeed sections.
 
 ## Payments
 
@@ -319,7 +320,7 @@ Semantic search uses `pgvector` and the `match_audits` SQL function. If semantic
 - Do not replace the brand logo with a user avatar. User images belong in profile/avatar positions only.
 - Run database scripts in order when creating a fresh Supabase project.
 - Use the existing plan helpers before adding new plan-gated features.
-- Use the existing PDF export helper before adding new report formats.
+- Use the existing CSV export helper before adding new report formats.
 
 ## Useful Scripts
 

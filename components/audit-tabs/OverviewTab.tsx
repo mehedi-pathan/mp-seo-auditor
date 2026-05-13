@@ -12,6 +12,52 @@ interface OverviewTabProps {
   limited?: boolean
 }
 
+function PercentRing({
+  value,
+  color,
+  className = 'h-24 w-24 text-xl',
+}: {
+  value: number
+  color: string
+  className?: string
+}) {
+  const normalizedValue = Math.max(0, Math.min(100, Math.round(value)))
+  const radius = 43
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference - (normalizedValue / 100) * circumference
+
+  return (
+    <div className={`relative grid shrink-0 place-items-center rounded-[1.65rem] bg-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_16px_34px_rgba(96,165,250,0.12)] ring-1 ring-blue-100/80 dark:bg-white/[0.045] dark:shadow-black/20 dark:ring-white/10 ${className}`}>
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="8"
+          className="text-slate-200/80 dark:text-white/10"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          className="origin-center -rotate-90 transition-[stroke-dashoffset] duration-1000 ease-out"
+        />
+      </svg>
+      <span className="relative font-black" style={{ color }}>
+        {normalizedValue}%
+      </span>
+    </div>
+  )
+}
+
 export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabProps) {
   const getImpactColor = (impact: string) => {
     switch (impact) {
@@ -214,9 +260,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
             icon={<ShieldCheck className="h-4 w-4" />}
           >
             <div className="grid gap-4 xl:grid-cols-[120px_1fr] xl:items-center">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-[10px] border-emerald-500 bg-emerald-50 text-xl font-black text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
-                {trustScore}%
-              </div>
+              <PercentRing value={trustScore} color="#10b981" className="mx-auto h-24 w-24 text-xl" />
               <div className="space-y-3">
                 {scoreBar('Topical relevance', audit.scores.seo, '#10b981')}
                 {scoreBar('Subject expertise', Math.max(45, Math.min(100, audit.content.wordCount / 12)), '#f59e0b')}
@@ -231,9 +275,7 @@ export function OverviewTab({ audit, onCompare, limited = false }: OverviewTabPr
             icon={<CircleCheck className="h-4 w-4" />}
           >
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-[8px] border-blue-500 bg-blue-50 text-lg font-black text-blue-700 dark:bg-blue-500/10 dark:text-blue-200">
-                {freshnessScore}%
-              </div>
+              <PercentRing value={freshnessScore} color="#2563eb" className="h-20 w-20 text-lg" />
               <div>
                 <p className="text-sm leading-6 text-muted-foreground">
                   The page has {audit.content.wordCount} visible words and a readability score of {Math.round(audit.content.readabilityScore)}. Keep important pages updated with current examples, proof, FAQs, and internal links.

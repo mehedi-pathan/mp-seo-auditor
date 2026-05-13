@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { scanUrl } from '@/lib/scanEngine'
 import { analyzeAuditResults } from '@/lib/aiService'
-import { getPageSpeedAnalysis } from '@/lib/pageSpeed'
+import { getDualPageSpeedAnalysis } from '@/lib/pageSpeed'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import type { AuditResult, Fix } from '@/types'
 import { getEffectivePlan, getPlanEntitlements } from '@/lib/planAccess'
@@ -223,7 +223,12 @@ export async function POST(req: NextRequest) {
       auditResult = await scanUrl(url)
     }
 
-    const pageSpeed = await getPageSpeedAnalysis(url)
+    const pageSpeedDevices = await getDualPageSpeedAnalysis(url)
+    const pageSpeed = pageSpeedDevices?.mobile || pageSpeedDevices?.desktop || null
+
+    if (pageSpeedDevices) {
+      auditResult.pageSpeedDevices = pageSpeedDevices
+    }
 
     if (pageSpeed) {
       auditResult.pageSpeed = pageSpeed

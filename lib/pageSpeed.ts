@@ -1,4 +1,4 @@
-import type { PageSpeedAnalysis, PageSpeedAudit } from '@/types'
+import type { PageSpeedAnalysis, PageSpeedAudit, PageSpeedDeviceAnalysis, PageSpeedSnapshot } from '@/types'
 
 type LighthouseAudit = {
   id: string
@@ -10,6 +10,13 @@ type LighthouseAudit = {
   details?: {
     overallSavingsMs?: number
     overallSavingsBytes?: number
+    data?: string
+    timing?: number
+    screenshot?: {
+      data?: string
+      width?: number
+      height?: number
+    }
   }
 }
 
@@ -50,7 +57,64 @@ const compactAudit = (audit: LighthouseAudit): PageSpeedAudit => ({
 const metricValue = (audits: Record<string, LighthouseAudit>, id: string) =>
   audits[id]?.displayValue || null
 
-export async function getPageSpeedAnalysis(url: string): Promise<PageSpeedAnalysis | null> {
+const getSnapshot = (audits: Record<string, LighthouseAudit>): PageSpeedSnapshot | undefined => {
+  const finalScreenshot = audits['final-screenshot']?.details
+  const fullPageScreenshot = audits['full-page-screenshot']?.details?.screenshot
+  const data = finalScreenshot?.data || fullPageScreenshot?.data
+
+  if (!data) {
+    return undefined
+  }
+
+  return {
+    data,
+    width: fullPageScreenshot?.width,
+    height: fullPageScreenshot?.height,
+  }
+}
+
+const emptyPageSpeedResult = (
+  strategy: 'mobile' | 'desktop',
+  error: string
+): PageSpeedAnalysis => ({
+  strategy,
+  scores: {
+    performance: 0,
+    accessibility: 0,
+    bestPractices: 0,
+    seo: 0,
+  },
+  metrics: {
+    firstContentfulPaint: null,
+    largestContentfulPaint: null,
+    totalBlockingTime: null,
+    cumulativeLayoutShift: null,
+    speedIndex: null,
+  },
+  opportunities: [],
+  diagnostics: [],
+  passedAudits: 0,
+  fetchedAt: new Date().toISOString(),
+  source: 'pagespeed-insights',
+  error,
+})
+
+const friendlyPageSpeedError = (error: unknown) => {
+  if (error instanceof Error) {
+    const message = error.message || ''
+    if (error.name === 'AbortError' || message.toLowerCase().includes('aborted')) {
+      return 'Google PageSpeed took too long to finish this device crawl. Your main SEO audit is still based on live page data.'
+    }
+    return message
+  }
+
+  return 'Google PageSpeed could not complete this device crawl. Your main SEO audit is still based on live page data.'
+}
+
+export async function getPageSpeedAnalysis(
+  url: string,
+  strategy: 'mobile' | 'desktop' = 'mobile'
+): Promise<PageSpeedAnalysis | null> {
   const key = process.env.PAGESPEED_API_KEY
 
   if (!key) {
@@ -60,7 +124,7 @@ export async function getPageSpeedAnalysis(url: string): Promise<PageSpeedAnalys
   const params = new URLSearchParams({
     url,
     key,
-    strategy: 'mobile',
+    strategy,
     category: 'performance',
   })
 
@@ -69,7 +133,7 @@ export async function getPageSpeedAnalysis(url: string): Promise<PageSpeedAnalys
   params.append('category', 'seo')
 
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 45000)
+  const timeoutId = setTimeout(() => controller.abort(), 65000)
 
   try {
     const response = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`, {
@@ -78,28 +142,7 @@ export async function getPageSpeedAnalysis(url: string): Promise<PageSpeedAnalys
     })
 
     if (!response.ok) {
-      return {
-        strategy: 'mobile',
-        scores: {
-          performance: 0,
-          accessibility: 0,
-          bestPractices: 0,
-          seo: 0,
-        },
-        metrics: {
-          firstContentfulPaint: null,
-          largestContentfulPaint: null,
-          totalBlockingTime: null,
-          cumulativeLayoutShift: null,
-          speedIndex: null,
-        },
-        opportunities: [],
-        diagnostics: [],
-        passedAudits: 0,
-        fetchedAt: new Date().toISOString(),
-        source: 'pagespeed-insights',
-        error: `PageSpeed request failed with ${response.status}`,
-      }
+      return emptyPageSpeedResult(strategy, `PageSpeed request failed with ${response.status}`)
     }
 
     const json = (await response.json()) as PageSpeedResponse
@@ -140,7 +183,7 @@ export async function getPageSpeedAnalysis(url: string): Promise<PageSpeedAnalys
       .map(compactAudit)
 
     return {
-      strategy: 'mobile',
+      strategy,
       scores: {
         performance: toScore(categories.performance?.score),
         accessibility: toScore(categories.accessibility?.score),
@@ -158,32 +201,27 @@ export async function getPageSpeedAnalysis(url: string): Promise<PageSpeedAnalys
       diagnostics,
       passedAudits: auditList.filter(audit => audit.score === 1).length,
       fetchedAt: lighthouse?.fetchTime || new Date().toISOString(),
+      snapshot: getSnapshot(audits),
       source: 'pagespeed-insights',
     }
   } catch (error) {
-    return {
-      strategy: 'mobile',
-      scores: {
-        performance: 0,
-        accessibility: 0,
-        bestPractices: 0,
-        seo: 0,
-      },
-      metrics: {
-        firstContentfulPaint: null,
-        largestContentfulPaint: null,
-        totalBlockingTime: null,
-        cumulativeLayoutShift: null,
-        speedIndex: null,
-      },
-      opportunities: [],
-      diagnostics: [],
-      passedAudits: 0,
-      fetchedAt: new Date().toISOString(),
-      source: 'pagespeed-insights',
-      error: error instanceof Error ? error.message : 'PageSpeed request failed',
-    }
+    return emptyPageSpeedResult(strategy, friendlyPageSpeedError(error))
   } finally {
     clearTimeout(timeoutId)
   }
+}
+
+export async function getDualPageSpeedAnalysis(url: string): Promise<PageSpeedDeviceAnalysis | null> {
+  const key = process.env.PAGESPEED_API_KEY
+
+  if (!key) {
+    return null
+  }
+
+  const [mobile, desktop] = await Promise.all([
+    getPageSpeedAnalysis(url, 'mobile'),
+    getPageSpeedAnalysis(url, 'desktop'),
+  ])
+
+  return { mobile, desktop }
 }

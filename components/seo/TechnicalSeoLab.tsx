@@ -59,8 +59,12 @@ export function TechnicalSeoLab({ compact = false }: TechnicalSeoLabProps) {
   }, [blockAiCrawlers, normalizedSite])
 
   const copyRobotsText = async () => {
-    await navigator.clipboard.writeText(robotsCode)
-    toast.success('Robots.txt copied')
+    try {
+      await navigator.clipboard.writeText(robotsCode)
+      toast.success('Robots.txt copied')
+    } catch {
+      toast.error('Clipboard permission denied. Select and copy the robots.txt text manually.')
+    }
   }
 
   return (

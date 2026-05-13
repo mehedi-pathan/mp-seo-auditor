@@ -1,7 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useId } from 'react'
 
 interface ScoreRingProps {
   score: number
@@ -11,54 +10,72 @@ interface ScoreRingProps {
 }
 
 export function ScoreRing({ score, label, color, size = 'md' }: ScoreRingProps) {
-  const [displayScore, setDisplayScore] = useState(0)
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (displayScore < score) {
-      interval = setInterval(() => {
-        setDisplayScore(prev => Math.min(prev + 2, score))
-      }, 20)
-    }
-    return () => clearInterval(interval)
-  }, [score, displayScore])
-
-  const circumference = 2 * Math.PI * 45
-  const strokeDashoffset = circumference - (displayScore / 100) * circumference
-  const ringSize = size === 'sm' ? 'h-24 w-24 sm:h-28 sm:w-28' : 'h-32 w-32'
-  const numberSize = size === 'sm' ? 'text-2xl sm:text-3xl' : 'text-3xl'
+  const id = useId().replace(/:/g, '')
+  const normalizedScore = Math.max(0, Math.min(100, Math.round(score)))
+  const gaugeSize = size === 'sm' ? 112 : 132
+  const strokeWidth = size === 'sm' ? 9 : 10
+  const radius = 48
+  const circumference = 2 * Math.PI * radius
+  const dashOffset = circumference - (normalizedScore / 100) * circumference
 
   return (
-    <div className="flex min-w-0 flex-col items-center gap-2">
-      <div className={`relative ${ringSize}`}>
-        <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="45" fill="none" stroke="currentColor" strokeWidth="6" className="text-gray-200 dark:text-gray-700" />
-          <motion.circle
+    <div className="flex min-w-0 flex-col items-center gap-1.5">
+      <div
+        className="relative grid place-items-center rounded-[2rem] bg-white/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_18px_45px_rgba(96,165,250,0.14)] ring-1 ring-blue-100/80 backdrop-blur dark:bg-white/[0.045] dark:shadow-black/20 dark:ring-white/10"
+        style={{ height: gaugeSize, width: gaugeSize }}
+      >
+        <svg
+          viewBox="0 0 120 120"
+          className="absolute inset-0 h-full w-full overflow-visible"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient id={`score-ring-${id}`} x1="16" y1="20" x2="104" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor={color} stopOpacity="0.72" />
+              <stop offset="52%" stopColor={color} />
+              <stop offset="100%" stopColor={color} stopOpacity="0.82" />
+            </linearGradient>
+            <filter id={`score-glow-${id}`} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feColorMatrix
+                in="blur"
+                type="matrix"
+                values="0 0 0 0 0.20 0 0 0 0 0.54 0 0 0 0 0.96 0 0 0 0.22 0"
+              />
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle
             cx="60"
             cy="60"
-            r="45"
+            r={radius}
             fill="none"
-            stroke={color}
-            strokeWidth="6"
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            className="text-slate-200/80 dark:text-white/10"
+          />
+          <circle
+            cx="60"
+            cy="60"
+            r={radius}
+            fill="none"
+            stroke={`url(#score-ring-${id})`}
+            strokeWidth={strokeWidth}
             strokeLinecap="round"
-            initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            style={{
-              strokeDasharray: circumference,
-            }}
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+            filter={`url(#score-glow-${id})`}
+            className="origin-center -rotate-90 transition-[stroke-dashoffset] duration-1000 ease-out"
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
-            className="text-center"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className={`${numberSize} font-bold`}>{displayScore}</div>
-            <div className="text-xs text-muted-foreground">Score</div>
-          </motion.div>
+        <div className="relative text-center">
+          <p className={size === 'sm' ? 'text-3xl font-black leading-none text-slate-950 dark:text-white' : 'text-4xl font-black leading-none text-slate-950 dark:text-white'}>
+            {normalizedScore}
+          </p>
+          <p className="mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">Score</p>
         </div>
       </div>
       <span className="max-w-full truncate text-center text-xs font-medium sm:text-sm">{label}</span>

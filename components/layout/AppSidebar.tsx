@@ -65,12 +65,9 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
             >
             <div className="flex items-start justify-between gap-3 border-b border-border p-3.5">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-white p-1.5 shadow-sm">
-                  <img
-                    src="/mp-seo-logo.jpeg"
-                    alt="MP SEO Auditor logo"
-                    className="h-full w-full object-contain"
-                  />
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-white p-1.5 shadow-sm dark:bg-white/[0.04]">
+                  <img src="/mp-seo-logo-icon-blue.svg" alt="MP SEO Auditor logo" className="h-full w-full object-contain dark:hidden" />
+                  <img src="/mp-seo-logo-icon-dark.png" alt="MP SEO Auditor logo" className="hidden h-full w-full object-contain dark:block" />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate font-semibold">MP SEO Auditor</p>
@@ -158,28 +155,26 @@ export function AppSidebar({ open, user, scansUsed, scansLimit, onClose, onLogou
                     </p>
                   </div>
                 </div>
-                <div className="mt-3 grid gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-3">
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-10 items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-white px-3 text-sm font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50 dark:border-emerald-400/20 dark:bg-[#0d1727] dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                    className="group grid h-14 place-items-center rounded-2xl border border-emerald-200 bg-white/90 text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50 dark:border-emerald-400/20 dark:bg-[#0d1727] dark:text-emerald-300 dark:hover:bg-emerald-500/10"
+                    aria-label="Contact on WhatsApp"
+                    title="WhatsApp"
                   >
-                    <span className="inline-flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      WhatsApp
-                    </span>
-                    <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+                    <MessageCircle className="h-6 w-6 transition-transform group-hover:scale-110" />
+                    <span className="sr-only">WhatsApp</span>
                   </a>
                   <a
                     href={emailUrl}
-                    className="inline-flex h-10 items-center justify-between gap-2 rounded-xl border border-blue-200 bg-white px-3 text-sm font-semibold text-blue-700 shadow-sm transition-colors hover:bg-blue-50 dark:border-blue-400/20 dark:bg-[#0d1727] dark:text-blue-300 dark:hover:bg-blue-500/10"
+                    className="group grid h-14 place-items-center rounded-2xl border border-blue-200 bg-white/90 text-blue-700 shadow-sm transition-colors hover:bg-blue-50 dark:border-blue-400/20 dark:bg-[#0d1727] dark:text-blue-300 dark:hover:bg-blue-500/10"
+                    aria-label="Send email"
+                    title="Email"
                   >
-                    <span className="inline-flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email
-                    </span>
-                    <ExternalLink className="h-3.5 w-3.5 opacity-70" />
+                    <Mail className="h-6 w-6 transition-transform group-hover:scale-110" />
+                    <span className="sr-only">Email</span>
                   </a>
                 </div>
               </div>

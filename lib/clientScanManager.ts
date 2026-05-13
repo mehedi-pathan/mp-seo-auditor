@@ -12,6 +12,7 @@ export interface ClientScanJobSnapshot {
   sessionId: string
   url: string
   status: ScanJobStatus
+  progress: number
   audit: AuditResult | null
   error: string | null
 }
@@ -19,6 +20,7 @@ export interface ClientScanJobSnapshot {
 interface ClientScanJob extends ClientScanJobSnapshot {
   promise: Promise<AuditResult>
   listeners: Set<(job: ClientScanJobSnapshot) => void>
+  progressTimer: ReturnType<typeof window.setInterval> | null
 }
 
 const jobs = new Map<string, ClientScanJob>()
@@ -32,6 +34,7 @@ const snapshotJob = (job: ClientScanJob): ClientScanJobSnapshot => ({
   sessionId: job.sessionId,
   url: job.url,
   status: job.status,
+  progress: job.progress,
   audit: job.audit,
   error: job.error,
 })
@@ -117,6 +120,28 @@ const notify = (job: ClientScanJob) => {
   }
 }
 
+const stopProgressTimer = (job: ClientScanJob) => {
+  if (job.progressTimer) {
+    window.clearInterval(job.progressTimer)
+    job.progressTimer = null
+  }
+}
+
+const startProgressTimer = (job: ClientScanJob) => {
+  stopProgressTimer(job)
+
+  job.progressTimer = window.setInterval(() => {
+    if (job.status !== 'running') {
+      stopProgressTimer(job)
+      return
+    }
+
+    const step = job.progress < 60 ? 5 : job.progress < 90 ? 2.8 : 1.4
+    job.progress = Math.min(100, job.progress + step + Math.random() * 1.4)
+    notify(job)
+  }, 650)
+}
+
 export const getClientScanJob = (url: string) => {
   return jobs.get(normalizeWebsiteUrl(url)) || null
 }
@@ -150,9 +175,11 @@ export const startClientScanJob = (url: string, userId?: string | null) => {
     sessionId,
     url: normalizedUrl,
     status: 'running',
+    progress: 4,
     audit: null,
     error: null,
     listeners: new Set(),
+    progressTimer: null,
     promise: fetch('/api/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -169,13 +196,17 @@ export const startClientScanJob = (url: string, userId?: string | null) => {
         saveLocalAudit(audit)
         setStickyScanResult(audit)
         job.status = 'complete'
+        job.progress = 100
         job.audit = audit
+        stopProgressTimer(job)
         notify(job)
         return audit
       })
       .catch(error => {
         job.status = 'error'
+        job.progress = Math.max(job.progress, 1)
         job.error = error instanceof Error ? error.message : 'Scan failed'
+        stopProgressTimer(job)
         notify(job)
         throw error
       }),
@@ -183,5 +214,6 @@ export const startClientScanJob = (url: string, userId?: string | null) => {
 
   jobs.set(normalizedUrl, job)
   notify(job)
+  startProgressTimer(job)
   return job
 }

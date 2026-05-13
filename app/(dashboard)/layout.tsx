@@ -12,6 +12,7 @@ import { getEffectivePlan } from '@/lib/planAccess'
 import { getPlanDisplay } from '@/lib/planDisplay'
 import { subscribeGlobalScan, type ClientScanJobSnapshot } from '@/lib/clientScanManager'
 import { useScanProgress } from '@/hooks/useScanProgress'
+import { LoadingMark } from '@/components/loading/RouteLoading'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import {
@@ -22,7 +23,6 @@ import {
   Mail,
   MessageCircle,
   RefreshCw,
-  Search,
   User,
 } from 'lucide-react'
 
@@ -62,7 +62,8 @@ function GlobalScanStatus({ scan, progress, collapsed = false }: GlobalScanStatu
   const domain = scan.url.replace(/^https?:\/\//, '').replace(/\/$/, '')
   const isRunning = scan.status === 'running'
   const isComplete = scan.status === 'complete'
-  const label = isRunning ? `Scanning ${Math.max(1, Math.min(100, progress))}%` : isComplete ? 'Report ready' : 'Scan failed'
+  const displayedProgress = Math.round(Math.max(1, Math.min(100, progress)))
+  const label = isRunning ? `Scanning ${displayedProgress}%` : isComplete ? 'Report ready' : 'Scan failed'
   const Icon = isComplete ? CheckCircle2 : scan.status === 'error' ? AlertTriangle : RefreshCw
 
   if (collapsed) {
@@ -105,7 +106,7 @@ function GlobalScanStatus({ scan, progress, collapsed = false }: GlobalScanStatu
       </div>
       {isRunning && (
         <span className="mt-3 block h-2 overflow-hidden rounded-full bg-white dark:bg-white/10">
-          <span className="block h-full rounded-full bg-blue-400 transition-[width] duration-500" style={{ width: `${Math.max(8, Math.min(100, progress))}%` }} />
+          <span className="block h-full rounded-full bg-blue-400 transition-[width] duration-500" style={{ width: `${Math.max(8, Math.min(100, displayedProgress))}%` }} />
         </span>
       )}
     </Link>
@@ -163,16 +164,27 @@ function DesktopRightSidebar({
           src="/desktop-sidebar-toggle-icon.webp"
           alt=""
           className={`sidebar-toggle-swing h-4 w-4 object-contain opacity-95 drop-shadow-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-100 dark:invert ${
-            collapsed ? 'rotate-0' : 'rotate-180'
+            collapsed ? 'rotate-180' : 'rotate-0'
           }`}
         />
       </button>
 
       <div className="flex min-h-[56px] items-center justify-center transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]">
-        <Link href="/dashboard" prefetch className={`flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm transition-[width,height,padding,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 dark:border-white/10 ${
-          collapsed ? 'h-10 w-10 p-1' : 'h-14 w-14 p-1.5'
+        <Link href="/dashboard" prefetch className={`flex shrink-0 items-center justify-center overflow-hidden transition-[width,height,padding,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:opacity-95 ${
+          collapsed
+            ? 'h-10 w-10 rounded-2xl border border-blue-100/70 bg-white/55 p-1 shadow-sm shadow-blue-100/60 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-black/20'
+            : 'h-14 w-[220px] rounded-none border border-transparent bg-transparent px-0 py-1 shadow-none'
         }`} title="Go to dashboard">
-          <img src="/mp-seo-logo.jpeg" alt="MP SEO Auditor brand logo" className="h-full w-full object-contain" />
+          <img
+            src={collapsed ? '/mp-seo-logo-icon-blue.svg' : '/mp-seo-logo-full.svg'}
+            alt="MP SEO Auditor brand logo"
+            className="h-full w-full object-contain dark:hidden"
+          />
+          <img
+            src={collapsed ? '/mp-seo-logo-icon-dark.png' : '/mp-seo-logo-full-dark.png'}
+            alt="MP SEO Auditor brand logo"
+            className="hidden h-full w-full object-contain dark:block"
+          />
         </Link>
       </div>
 
@@ -236,7 +248,7 @@ function DesktopRightSidebar({
                 <img
                   src={item.iconSrc}
                   alt=""
-                  className={`mx-auto block h-6 w-6 shrink-0 object-contain object-center transition-transform duration-300 group-hover:scale-105 dark:invert ${
+                  className={`mx-auto block h-6 w-6 shrink-0 select-none object-contain object-center transition-opacity duration-300 dark:invert ${
                     isActive ? 'opacity-100' : 'opacity-75'
                   }`}
                 />
@@ -286,22 +298,26 @@ function DesktopRightSidebar({
           <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
             For redesign your site or only SEO improvement, contact MP SEO team.
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid grid-cols-2 gap-3">
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white text-sm font-bold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-400/20 dark:bg-[#0d1727] dark:text-emerald-300"
+              className="group grid h-14 place-items-center rounded-2xl border border-emerald-200 bg-white/85 text-emerald-700 shadow-sm transition-colors hover:bg-emerald-50 dark:border-emerald-400/20 dark:bg-[#0d1727] dark:text-emerald-300"
+              aria-label="Contact on WhatsApp"
+              title="WhatsApp"
             >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
+              <MessageCircle className="h-6 w-6 transition-transform group-hover:scale-110" />
+              <span className="sr-only">WhatsApp</span>
             </a>
             <a
               href={emailUrl}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white text-sm font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-400/20 dark:bg-[#0d1727] dark:text-blue-300"
+              className="group grid h-14 place-items-center rounded-2xl border border-blue-200 bg-white/85 text-blue-700 shadow-sm transition-colors hover:bg-blue-50 dark:border-blue-400/20 dark:bg-[#0d1727] dark:text-blue-300"
+              aria-label="Send email"
+              title="Email"
             >
-              <Mail className="h-4 w-4" />
-              Email
+              <Mail className="h-6 w-6 transition-transform group-hover:scale-110" />
+              <span className="sr-only">Email</span>
             </a>
           </div>
         </div>
@@ -364,8 +380,9 @@ function DesktopTopNavbar({
     <header className="hidden shrink-0 border-b border-blue-200 bg-[linear-gradient(135deg,#eaf5ff_0%,#f8fbff_55%,#edf7ff_100%)] px-8 py-4 backdrop-blur-2xl lg:block dark:border-blue-400/15 dark:bg-[linear-gradient(135deg,#07111f_0%,#0b1626_58%,#08111f_100%)]">
       <div className="mx-auto flex h-12 max-w-[1160px] items-center justify-between gap-6">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm dark:border-white/10">
-            <img src="/mp-seo-logo.jpeg" alt="MP SEO Auditor desktop logo" className="h-full w-full object-contain" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+            <img src="/mp-seo-logo-icon-blue.svg" alt="MP SEO Auditor desktop logo" className="h-full w-full object-contain dark:hidden" />
+            <img src="/mp-seo-logo-icon-dark.png" alt="MP SEO Auditor desktop logo" className="hidden h-full w-full object-contain dark:block" />
           </div>
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
@@ -389,7 +406,7 @@ function DesktopTopNavbar({
             prefetch
             className="inline-flex h-11 items-center gap-2 rounded-full bg-blue-400 px-5 text-sm font-bold text-slate-950 shadow-lg shadow-blue-200/70 transition-colors hover:bg-blue-300 dark:shadow-blue-950/20"
           >
-            <Search className="h-4 w-4" />
+            <img src="/desktop-search-icon.svg" alt="" className="h-4 w-4 object-contain" />
             New scan
           </Link>
           <Link href="/profile" prefetch className="relative flex h-11 w-11 items-center justify-center rounded-full border border-blue-100 bg-white shadow-sm dark:border-white/10 dark:bg-white/[0.06]">
@@ -440,7 +457,10 @@ export default function DashboardLayout({
   } | null>(null)
   const router = useRouter()
   const liveScanProgress = useScanProgress(scanStatus?.status === 'running' ? scanStatus.sessionId : null)
-  const globalScanProgress = scanStatus?.status === 'complete' ? 100 : Math.max(liveScanProgress.progress || 0, scanStatus?.status === 'running' ? 8 : 0)
+  const globalScanProgress = scanStatus?.status === 'complete'
+    ? 100
+    : Math.max(liveScanProgress.progress || 0, scanStatus?.progress || 0, scanStatus?.status === 'running' ? 8 : 0)
+  const effectivePlan = user ? getEffectivePlan(user.plan, user.planExpiresAt) : 'free'
 
   const getLimit = (plan?: string | null) => {
     if (plan === 'business' || plan === 'agency') return null
@@ -558,6 +578,17 @@ export default function DashboardLayout({
   }, [])
 
   useEffect(() => {
+    if (isLoading || !user) return
+
+    window.dispatchEvent(new CustomEvent('profile-plan-loaded', {
+      detail: {
+        plan: effectivePlan,
+        planExpiresAt: user.planExpiresAt,
+      },
+    }))
+  }, [effectivePlan, isLoading, user])
+
+  useEffect(() => {
     const handleProfileUpdated = (event: Event) => {
       const detail = (event as CustomEvent<{ name?: string; email?: string; avatarUrl?: string }>).detail
 
@@ -633,15 +664,10 @@ export default function DashboardLayout({
     setPullDistance(0)
   }
 
-  const effectivePlan = user ? getEffectivePlan(user.plan, user.planExpiresAt) : 'free'
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <LoadingMark label="Loading your dashboard" />
       </div>
     )
   }
@@ -671,6 +697,7 @@ export default function DashboardLayout({
       )}
       <div
         ref={scrollRef}
+        data-dashboard-scroll
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-28 transition-[padding-right] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:pb-0 lg:pr-[var(--desktop-sidebar-width)]"
         style={{ '--desktop-sidebar-width': desktopSidebarCollapsed ? '84px' : '280px' } as CSSProperties}
         onMouseDown={() => {
